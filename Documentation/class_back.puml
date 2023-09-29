@@ -1,0 +1,59 @@
+@startuml class_back
+
+class Game {
+	- game_state : GameState
+
+	+ get_state() -> GameState
+	+ pacman_action(Direction)
+}
+
+class GameState {
+	- maze : list[list[CellState]]
+
+	+ get(x: int, y: int) -> CellState
+}
+
+class CellState {
+	- cell : Cell
+	- agents : list[Agent]
+
+	+ get_cell() -> Cell
+	+ get_agetns() -> tuple[Agent]
+}
+
+enum Cell {
+	+ EMPTY = 0
+	+ WALL = 1
+	+ DOOR = 2
+	+ PAC_DOT = 3
+	+ PAC_GUM = 4
+}
+
+class Agent {
+	- direction : Direction
+}
+
+class Pacman {
+}
+
+class Ghost {
+	- panic : bool
+}
+
+enum Direction {
+	+ UP : 0
+	+ LEFT : 1
+	+ DOWN : 2
+	+ RIGHT : 3
+}
+
+
+Game *-- GameState : game_state
+GameState *-- CellState : maze
+CellState +-- Cell : cell
+CellState *-- Agent : agents
+Agent +-- Direction : direction
+Pacman --|> Agent
+Ghost --|> Agent
+
+@enduml
