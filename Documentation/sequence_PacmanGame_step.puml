@@ -1,0 +1,37 @@
+@startuml sequence_qlearning
+title "Actor calls game step"
+
+actor QLearning
+boundary PacmanGame
+control AgentManager
+control BoardManager
+
+
+QLearning -> PacmanGame : step([action(id, direction)])
+activate PacmanGame
+PacmanGame -> PacmanGame : can_apply(action)
+activate PacmanGame
+PacmanGame -> AgentManager : get_agent(action.id)
+PacmanGame <-- AgentManager : agent
+PacmanGame -> BoardManager : get_cell(agent.get_position())
+PacmanGame <-- BoardManager : cell
+PacmanGame --> PacmanGame : bool
+deactivate PacmanGame
+
+PacmanGame -> PacmanGame : apply(action)
+activate PacmanGame
+PacmanGame -> AgentManager : apply(action)
+PacmanGame <-- AgentManager : agent
+
+PacmanGame -> BoardManager : set_cell(agent.get_position(), EMPTY)
+PacmanGame <-- BoardManager
+
+PacmanGame --> PacmanGame
+QLearning <-- PacmanGame : QLearningState
+
+deactivate PacmanGame
+
+
+
+
+@enduml

@@ -1,24 +1,30 @@
 @startuml class_back
 
-class Game {
-	- game_state : GameState
+class PacmanGame {
+	- board_manager: BoardManager
+	- agent_manager: AgentManager
 
-	+ get_state() -> GameState
-	+ pacman_action(Direction)
+	+ get_qlearning_state() -> QLearningState
+	+ get_cli_state() -> CliState
+	+ step(list[Action]) -> None
+	- load_board(path: str) --> None, FileNotFoundError
+	- can_apply(action: Action) -> bool
+	- apply(action: Action) -> None
 }
 
-class GameState {
-	- maze : list[list[CellState]]
+class BoardManager {
+	- cells: list[list[Cell]]
 
-	+ get(x: int, y: int) -> CellState
+	- get_cell(x: int, y: int) --> Cell, PacErrOutOfBoard
+	- set_cell(x: int, y: int, Cell) --> None,
 }
 
-class CellState {
-	- cell : Cell
-	- agents : list[Agent]
+class AgentManager {
+	- agents: dict[Agent]
 
-	+ get_cell() -> Cell
-	+ get_agetns() -> tuple[Agent]
+	+ can_apply(action: Action)
+	+ apply(action: Action) -> Agent
+	+ get_agent(id: str) --> Agent, PacErrUnknownAgentId
 }
 
 enum Cell {
@@ -30,30 +36,50 @@ enum Cell {
 }
 
 class Agent {
-	- direction : Direction
+	- id: str
+	- x: int
+	- y: int
+
+	+ get_position() -> tuple[int, int]
+	+ move(direction: Direction) -> None
 }
 
 class Pacman {
 }
 
 class Ghost {
-	- panic : bool
+	- panic: bool
 }
 
 enum Direction {
-	+ UP : 0
-	+ LEFT : 1
-	+ DOWN : 2
-	+ RIGHT : 3
+	+ UP: 0
+	+ LEFT: 1
+	+ DOWN: 2
+	+ RIGHT: 3
+}
+
+class Action {
+	agent_id: str
+	direction: Direction
+}
+
+exception PacErrOutOfBoard {
+}
+exception PacErrUnknownAgentId {
 }
 
 
-Game *-- GameState : game_state
-GameState *-- CellState : maze
-CellState +-- Cell : cell
-CellState *-- Agent : agents
-Agent +-- Direction : direction
+
+PacmanGame *-- AgentManager: agent_manager
+AgentManager *-- Agent: agents
+PacmanGame *-- BoardManager: board
+BoardManager +-- Cell: cells
 Pacman --|> Agent
 Ghost --|> Agent
+
+Action +-r- Direction
+
+BoardManager .. PacErrOutOfBoard
+AgentManager .. PacErrUnknownAgentId
 
 @enduml
