@@ -1,14 +1,21 @@
 @startuml sequence_qlearning
 title "Actor calls game step"
 
-actor QLearning
+actor Algorithm
 boundary PacmanGame
 control AgentManager
 control BoardManager
 
 
-QLearning -> PacmanGame : step([action(id, direction)])
+Algorithm -> PacmanGame : step([action(id, direction)])
 activate PacmanGame
+
+note left of PacmanGame
+    Apply passed actions
+end note
+
+loop for all actions
+
 PacmanGame -> PacmanGame : can_apply(action)
 activate PacmanGame
 PacmanGame -> AgentManager : get_agent(action.id)
@@ -27,11 +34,25 @@ PacmanGame -> BoardManager : set_cell(agent.get_position(), EMPTY)
 PacmanGame <-- BoardManager
 
 PacmanGame --> PacmanGame
-QLearning <-- PacmanGame : QLearningState
 
 deactivate PacmanGame
 
+end
 
+note left of PacmanGame
+    Collisions
+end note
 
+PacmanGame -> AgentManager : get_all_agents()
+PacmanGame <-- AgentManager : agents
 
+PacmanGame -> BoardManager : get_collisions(agents)
+PacmanGame <-- BoardManager : collisions
+
+loop for all collisions
+    PacmanGame -> PacmanGame : "apply collision effect"
+end
+
+Algorithm <-- PacmanGame : QLearningState
+deactivate PacmanGame
 @enduml
