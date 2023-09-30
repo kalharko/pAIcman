@@ -18,15 +18,15 @@ class Agent():
         self._last_direction = Direction['UP']
 
     def get_position(self) -> tuple[int, int]:
-        return (self.x, self.y)
+        return (self._x, self._y)
 
     def get_last_direction(self) -> Direction:
         return self._last_direction
 
-    def get_id() -> str:
+    def get_id(self) -> str:
         return self._id
 
-    def move(direction: Direction) -> None:
+    def move(self, direction: Direction) -> None:
         assert isinstance(direction, Direction)
 
         if direction == Direction['UP']:
@@ -43,7 +43,7 @@ class Agent():
 
         self._last_direction = direction
 
-    def try_move(direction: Direction) -> tuple[int, int]:
+    def try_move(self, direction: Direction) -> tuple[int, int]:
         assert isinstance(direction, Direction)
 
         if direction == Direction['UP']:

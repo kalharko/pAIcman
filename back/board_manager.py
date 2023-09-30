@@ -1,8 +1,6 @@
 from back.cell import Cell
 from back.agent import Agent
 
-import os.path.exist as does_path_exist
-
 
 class BoardManager():
     _cells: list[list[Cell]]
@@ -10,11 +8,29 @@ class BoardManager():
     def __init__(self) -> None:
         self._cells = None
 
-    def load(self, path: str) -> None:
-        assert isinstance(path, str)
-        assert does_path_exist(path)
+    def load(self, source: list[str]) -> None:
+        assert isinstance(source, list)
+        assert len(source) > 0
+        assert isinstance(source[0], str)
 
-        pass  # TODO
+        translation = {
+            ' ': Cell['EMPTY'],
+            '#': Cell['WALL'],
+            'D': Cell['DOOR'],
+            '.': Cell['PAC_DOT'],
+            'O': Cell['PAC_GUM'],
+            'P': Cell['EMPTY']
+        }
+
+        self._cells = [[Cell['EMPTY'] for y in range(len(source))] for x in range(len(source[0]) - 1)]
+
+        y = 0
+        for line in source:
+            x = 0
+            for char in line.rstrip('\n'):
+                self._cells[x][y] = translation[char]
+                x += 1
+            y += 1
 
     def get_cell(self, position: tuple[int, int]) -> Cell:
         assert isinstance(position, tuple)
@@ -22,7 +38,10 @@ class BoardManager():
         assert isinstance(position[0], int)
         assert isinstance(position[1], int)
 
-        return self._cells[x][y]
+        return self._cells[position[0]][position[1]]
+
+    def get_all_cells(self) -> list[list[Cell]]:
+        return self._cells
 
     def set_cell(self, position: tuple[int, int], cell: Cell) -> None:
         assert isinstance(position, tuple)
@@ -31,7 +50,7 @@ class BoardManager():
         assert isinstance(position[1], int)
         assert isinstance(cell, Cell)
 
-        self._cells[x][y] = cell
+        self._cells[position[0]][position[1]] = cell
 
     def get_collisions(self, agents: list[Agent]) -> list[tuple[str, str]]:
         assert isinstance(agents, list)
@@ -42,7 +61,7 @@ class BoardManager():
         for agent in agents:
             collisions = []
             # collision with cell content
-            if cell := self.get_cell(agent.get_position()) != Cell['EMPTY']:
+            if (cell := self.get_cell(agent.get_position())) != Cell['EMPTY']:
                 collisions.append(cell)
 
             # collision with other agents
@@ -50,9 +69,9 @@ class BoardManager():
                 if other_agent == agent:
                     continue
                 if agent.get_position() == other_agent.get_position():
-                    collisions.append(other_agent.get_id())
+                    collisions.append((other_agent.get_id()))
 
             for col in collisions:
                 if (col, agent.get_id()) not in out:
-                    out.append(agent.get_id(), col)
+                    out.append((agent.get_id(), col))
         return out

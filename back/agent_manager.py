@@ -6,13 +6,13 @@ from back.errors import PacErrUnknownAgentId
 class AgentManager():
     _agents: dict[Agent]
 
-    def __init__(self, agents: dict[Agent]) -> None:
+    def __init__(self) -> None:
         self._agents = []
 
     def set_agents(self, agents: dict[Agent]) -> None:
         assert isinstance(agents, dict)
         assert len(agents.keys()) > 0
-        assert isinstance(agents.values()[0], Agent)
+        assert isinstance(list(agents.values())[0], Agent)
 
         self._agents = agents
 
@@ -33,4 +33,4 @@ class AgentManager():
         return self._agents[id]
 
     def get_all_agents(self) -> list[Agent]:
-        return self.agents.values()
+        return list(self._agents.values())

@@ -1,10 +1,11 @@
+from back.agent import Agent
 
 
 class Ghost(Agent):
     _panic: bool
 
     def __init__(self, id: str, x: int, y: int) -> None:
-        super().init(id, x, y)
+        super().__init__(id, x, y)
         self._panic = False
 
     def get_panic(self) -> None:

@@ -1,10 +1,11 @@
+from back.agent import Agent
 
 
 class Pacman(Agent):
     _score: int
 
     def __init__(self, id: str, x: int, y: int) -> None:
-        super().init(id, x, y)
+        super().__init__(id, x, y)
 
         self._score = 0
 
