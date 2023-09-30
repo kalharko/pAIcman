@@ -1,30 +1,32 @@
 @startuml class_back
 
 class PacmanGame {
-	- board_manager: BoardManager
-	- agent_manager: AgentManager
+	- _board_manager: BoardManager
+	- _agent_manager: AgentManager
 
-	+ get_qlearning_state() -> QLearningState
-	+ get_cli_state() -> CliState
+	+ gather_qlearning_state() -> QLearningState
+	+ gather_cli_state() -> CliState
 	+ step(list[Action]) -> None
-	- load_board(path: str) --> None, FileNotFoundError
-	- can_apply(action: Action) -> bool
-	- apply(action: Action) -> None
+	+ load_board(path: str) -> None, FileNotFoundError
+	- _can_apply(action: Action) -> bool
+	- _apply(action: Action) -> None
 }
 
 class BoardManager {
-	- cells: list[list[Cell]]
+	- _cells: list[list[Cell]]
 
-	- get_cell(x: int, y: int) --> Cell, PacErrOutOfBoard
-	- set_cell(x: int, y: int, Cell) --> None,
+	+ load(path: str) -> None
+	+ get_cell(position: tuple[int, int]) -> Cell, PacErrOutOfBoard
+	+ set_cell(position: tuple[int, int], Cell) -> None,
+	+ get_collisions(self, agents: list[Agent]) -> list[tuple[str, str]]
 }
 
 class AgentManager {
-	- agents: dict[Agent]
+	- _agents: dict[Agent]
 
-	+ can_apply(action: Action)
 	+ apply(action: Action) -> Agent
-	+ get_agent(id: str) --> Agent, PacErrUnknownAgentId
+	+ get_agent(id: str) -> Agent, PacErrUnknownAgentId
+	+ get_all_agents() -> list[Agent]
 }
 
 enum Cell {
@@ -36,19 +38,29 @@ enum Cell {
 }
 
 class Agent {
-	- id: str
-	- x: int
-	- y: int
+	- _id: str
+	- _x: int
+	- _y: int
+	- _last_direction: Direction
 
 	+ get_position() -> tuple[int, int]
+	+ get_last_direction() -> Direction
+	+ get_id() -> str
 	+ move(direction: Direction) -> None
+	+ try_move(direction: Direction) -> tuple[int, int]
 }
 
 class Pacman {
+	- _score: int
+	+ add_score(value: int) -> None
+	+ get_score() -> int
 }
 
 class Ghost {
-	- panic: bool
+	- _panic: bool
+
+	+ get_panic() -> bool
+	+ set_pacnic(state: bool) -> None
 }
 
 enum Direction {
@@ -59,14 +71,17 @@ enum Direction {
 }
 
 class Action {
-	agent_id: str
-	direction: Direction
+	+ agent_id: str
+	+ direction: Direction
 }
 
+exception PacErrGeneric {
+}
 exception PacErrOutOfBoard {
 }
 exception PacErrUnknownAgentId {
 }
+exception PacErrInvalidAction
 
 
 
@@ -81,5 +96,10 @@ Action +-r- Direction
 
 BoardManager .. PacErrOutOfBoard
 AgentManager .. PacErrUnknownAgentId
+PacmanGame .. PacErrInvalidAction
+
+PacErrGeneric <|-u- PacErrOutOfBoard
+PacErrGeneric <|-u- PacErrUnknownAgentId
+PacErrGeneric <|-u- PacErrInvalidAction
 
 @enduml
