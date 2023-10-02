@@ -19,7 +19,7 @@ class BoardManager():
             'D': Cell['DOOR'],
             '.': Cell['PAC_DOT'],
             'O': Cell['PAC_GUM'],
-            'P': Cell['EMPTY']
+            'P': Cell['WALL']
         }
 
         self._cells = [[Cell['EMPTY'] for y in range(len(source))] for x in range(len(source[0]) - 1)]
