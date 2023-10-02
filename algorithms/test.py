@@ -9,14 +9,23 @@ from front.cli.cli_replay import CliReplay
 
 
 game = PacmanGame()
-game.load('maps/5x5.txt')
+game.load('maps/original.txt')
 
 game.step([Action('Pa', Direction['LEFT'])])
+game.step([Action('Pa', Direction['UP'])])
+game.step([Action('Pa', Direction['UP'])])
+game.step([Action('Pa', Direction['UP'])])
+game.step([Action('Pa', Direction['LEFT'])])
+game.step([Action('Pa', Direction['LEFT'])])
 game.step([Action('Pa', Direction['LEFT'])])
 game.step([Action('Pa', Direction['UP'])])
-game.step([Action('Pa', Direction['RIGHT'])])
-game.step([Action('Pa', Direction['RIGHT'])])
 game.step([Action('Pa', Direction['UP'])])
+game.step([Action('Pa', Direction['UP'])])
+game.step([Action('Pa', Direction['UP'])])
+game.step([Action('Pa', Direction['UP'])])
+game.step([Action('Pa', Direction['UP'])])
+game.step([Action('Pa', Direction['LEFT'])])
+game.step([Action('Pa', Direction['LEFT'])])
 game.step([Action('Pa', Direction['LEFT'])])
 game.step([Action('Pa', Direction['LEFT'])])
 
