@@ -1,0 +1,47 @@
+@startuml full
+
+title Simulation cycle
+
+
+actor Main
+entity Pacman
+entity Ghost
+database Perception
+boundary PacmanGame
+
+activate Main
+
+Main -> PacmanGame : gather_state()
+activate PacmanGame
+Main <-- PacmanGame : Board, Agents
+deactivate PacmanGame
+
+group parallelism
+    Main -> Main : mask_perception(Board, Agents)
+end
+
+Main -> Perception : append(Board, Agents)
+activate Perception
+Main <-- Perception
+deactivate Perception
+Main -> Main : strategy_computation()
+
+group parallelism
+    Main -> Pacman : step(strategy, Peception)
+    activate Pacman
+    Main <-- Pacman : Action
+    deactivate Pacman
+else
+    Main -> Ghost : step(strategy, Peception)
+    deactivate Pacman
+    activate Ghost
+    Main <-- Ghost : Action
+    deactivate Ghost
+end
+
+Main -> PacmanGame : step(Actions)
+activate PacmanGame
+Main <-- PacmanGame
+deactivate PacmanGame
+
+@enduml
