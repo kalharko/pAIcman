@@ -7,6 +7,7 @@ from back.cell import Cell
 from back.pacman_game import PacmanGame
 from back.action import Action
 from back.pacman import Pacman
+from back.agent import Agent
 
 
 class CliReplay():
@@ -16,30 +17,40 @@ class CliReplay():
 
     def __init__(self, replay) -> None:
         assert isinstance(replay, tuple)
-        assert len(replay) == 2
+        assert len(replay) == 3
         assert isinstance(replay[0], str)
         assert os_path.exists(replay[0])
         assert isinstance(replay[1], list)
         assert len(replay[1]) > 0
-        assert isinstance(replay[1][0], list)
-        assert len(replay[1][0]) > 0
-        assert isinstance(replay[1][0][0], Action)
+        assert isinstance(replay[1][0], Agent)
+        assert isinstance(replay[2], list)
+        assert len(replay[2]) > 0
+        assert isinstance(replay[2][0], list)
+        assert len(replay[2][0]) > 0
+        assert isinstance(replay[2][0][0], Action)
+
+        print('CliReplay.__init__')
 
         self._path_board = replay[0]
-        self._history = replay[1]
+        self._history = replay[2]
         self._fancy_walls = [[]]
         if input('Start curses replay ? (Y/n)') == 'n':
             return
+
+        # game
+        self._game = PacmanGame()
+        self._game.load_map(self._path_board)
+        for agent in replay[1]:
+            agent.respawn()
+        self._game.set_agents(replay[1])
+
+        # start graphical interface
         wrapper(self._start)
 
     def _start(self, stdscr) -> None:
         self._screen = stdscr
         self._screen.clear()
         self._screen.refresh()
-
-        # game
-        self._game = PacmanGame()
-        self._game.load(self._path_board)
 
         # load fancy walls
         self._fancy_walls = self._load_fancy_walls()
@@ -54,10 +65,13 @@ class CliReplay():
         self._ESCAPE = ['q']
 
         # colors
+        curses.init_color(250, 150, 150, 150)  # define gray
+        curses.init_color(251, 200, 0, 200)  # define pink
+
         curses.init_pair(1, curses.COLOR_BLUE, 0)  # wall
         curses.init_pair(2, curses.COLOR_YELLOW, 0)  # pacman
-        curses.init_color(700, 150, 150, 150)  # define gray
-        curses.init_pair(3, 700, 0)  # dots
+        curses.init_pair(3, 250, 0)  # dots
+        curses.init_pair(4, 251, 0)  # pink ghost
 
         # main loop
         self.main_loop()
@@ -86,7 +100,9 @@ class CliReplay():
         cells, agents = self._game.gather_cli_state()
         char_cell = [' ', '#', '_', '·', 'Ø']
         color_cell = [0, 1, 3, 3, 3]
-        char_pacman = ['v', '<', '^', '>']
+        char_pacman = ['ᗢ', 'ᗧ', 'ᗣ', 'ᗤ']
+        char_ghost = 'A'
+        color_ghost = [4]
 
         for x in range(len(cells)):
             for y in range(len(cells[0])):
@@ -107,6 +123,11 @@ class CliReplay():
                                     x + 1,
                                     char_pacman[agent.get_last_direction().value],
                                     curses.color_pair(2))
+            else:
+                self._screen.addstr(y + 1,
+                                    x + 1,
+                                    char_ghost,
+                                    curses.color_pair(4))
 
         # score
         i = 0

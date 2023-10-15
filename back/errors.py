@@ -16,5 +16,5 @@ class PacErrInvalidAction(PacErrGeneric):
     pass
 
 
-class PacErrPacmanInWall(PacErrGeneric):
+class PacErrAgentInWall(PacErrGeneric):
     pass

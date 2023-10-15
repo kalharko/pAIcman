@@ -5,7 +5,10 @@ class Agent():
     _id: str
     _x: int
     _y: int
+    _start_x: int
+    _start_y: int
     _last_direction: Direction
+    _score : int
 
     def __init__(self, id: str, x: int, y: int) -> None:
         assert isinstance(id, str)
@@ -15,7 +18,10 @@ class Agent():
         self._id = id
         self._x = x
         self._y = y
+        self._start_x = x
+        self._start_y = y
         self._last_direction = Direction['UP']
+        self._score = 0
 
     def get_position(self) -> tuple[int, int]:
         return (self._x, self._y)
@@ -25,6 +31,14 @@ class Agent():
 
     def get_id(self) -> str:
         return self._id
+
+    def add_score(self, value: int) -> None:
+        assert isinstance(value, int)
+
+        self._score += value
+
+    def get_score(self) -> int:
+        return self._score
 
     def move(self, direction: Direction) -> None:
         assert isinstance(direction, Direction)
@@ -56,3 +70,7 @@ class Agent():
             x, y = -1, 0
 
         return (self._x + x, self._y + y)
+
+    def respawn(self):
+        self._x = self._start_x
+        self._y = self._start_y

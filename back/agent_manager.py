@@ -9,12 +9,14 @@ class AgentManager():
     def __init__(self) -> None:
         self._agents = []
 
-    def set_agents(self, agents: dict[Agent]) -> None:
-        assert isinstance(agents, dict)
-        assert len(agents.keys()) > 0
-        assert isinstance(list(agents.values())[0], Agent)
+    def set_agents(self, agents: list[Agent]) -> None:
+        assert isinstance(agents, list)
+        assert len(agents) > 0
+        assert isinstance(agents[0], Agent)
 
-        self._agents = agents
+        self._agents = {}
+        for agent in agents:
+            self._agents[agent.get_id()] = agent
 
     def apply(self, action: Action) -> bool:
         assert isinstance(action, Action)

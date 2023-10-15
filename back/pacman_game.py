@@ -2,7 +2,7 @@ from back.board_manager import BoardManager
 from back.agent_manager import AgentManager
 from back.agent import Agent
 from back.action import Action
-from back.errors import PacErrInvalidAction, PacErrPacmanInWall
+from back.errors import PacErrInvalidAction, PacErrAgentInWall
 from back.cell import Cell
 from back.pacman import Pacman
 
@@ -21,7 +21,7 @@ class PacmanGame():
         self._path_board = None
         self._history = []
 
-    def load(self, path: str) -> None:
+    def load_map(self, path: str) -> None:
         assert isinstance(path, str)
 
         if not os_path.exists(path):
@@ -30,24 +30,24 @@ class PacmanGame():
         with open(path, 'r') as file:
             lines = file.readlines()
 
-        i = 0
-        agents = {}
-        while lines[i] != '|\n':
-            line = lines[i].rstrip('\n').split(', ')
-            if line[0] == 'Pacman':
-                agents[line[1]] = Pacman(line[1], int(line[2]), int(line[3]))
-            else:
-                agents[line[1]] = Ghost(line[1], int(line[2]), int(line[3]))
-            i += 1
-        self._agent_manager.set_agents(agents)
-
-        if err := self._board_manager.load(lines[i + 1:]) is not None:
+        if err := self._board_manager.load(lines) is not None:
             return err
 
         self._path_board = path
 
-    def gather_qlearning_state(self) -> None:
-        return None  # TODO
+    def set_agents(self, agents: list[Agent]) -> None:
+        assert isinstance(agents, list)
+        assert len(agents) > 0
+        assert isinstance(agents[0], Agent)
+
+        for agent in agents:
+            cell = self._board_manager.get_cell(agent.get_position())
+            if cell == Cell['WALL'] or cell == Cell['DOOR']:
+                return PacErrAgentInWall(agent)
+        self._agent_manager.set_agents(agents)
+
+    def gather_state(self, agents: list[Agent]) -> None:
+        pass
 
     def gather_cli_state(self) -> tuple[list[list[Cell]], list[Agent]]:
         return (
@@ -55,8 +55,8 @@ class PacmanGame():
             self._agent_manager.get_all_agents()
         )
 
-    def get_replay(self) -> tuple[str, list[list[Action]]]:
-        return (self._path_board, self._history)
+    def get_replay(self) -> tuple[str, list[Agent],list[list[Action]]]:
+        return (self._path_board, self._agent_manager.get_all_agents(), self._history)
 
     def step(self, actions: list[Action]) -> None:
         assert isinstance(actions, list)
@@ -96,9 +96,7 @@ class PacmanGame():
 
             # collision with agent
             else:
-                # other = self._agent_manager.get_agent(col[1])
-                pass
-                # TODO
+
 
         self._history.append(actions)
 
