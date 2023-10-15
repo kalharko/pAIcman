@@ -96,7 +96,7 @@ class PacmanGame():
 
             # collision with agent
             else:
-
+                pass
 
         self._history.append(actions)
 
