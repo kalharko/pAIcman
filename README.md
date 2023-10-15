@@ -18,6 +18,10 @@ Enter the virtual environnement:
 ```
 source env/bin/activate
 ```
+or (windows powershell)
+```
+.\env\Scripts\Activate.ps1
+```
 Install the necessary dependencies:
 ```
 pip install -r requirements.txt
