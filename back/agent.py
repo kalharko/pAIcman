@@ -1,4 +1,4 @@
-from back.direction import Direction
+from utils.direction import Direction
 
 
 class Agent():

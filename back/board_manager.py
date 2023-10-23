@@ -1,12 +1,13 @@
-from back.cell import Cell
+from utils.cell import Cell
+from utils.board import Board
 from back.agent import Agent
 
 
 class BoardManager():
-    _cells: list[list[Cell]]
+    _board: Board
 
     def __init__(self) -> None:
-        self._cells = None
+        self._board = Board()
 
     def load(self, source: list[str]) -> None:
         assert isinstance(source, list)
@@ -22,15 +23,16 @@ class BoardManager():
             'P': Cell['WALL']
         }
 
-        self._cells = [[Cell['EMPTY'] for y in range(len(source))] for x in range(len(source[0]) - 1)]
+        cells = [[Cell['EMPTY'] for y in range(len(source))] for x in range(len(source[0]))]
 
         y = 0
         for line in source:
             x = 0
             for char in line.rstrip('\n'):
-                self._cells[x][y] = translation[char]
+                cells[x][y] = translation[char]
                 x += 1
             y += 1
+        self._board.set_board(cells)
 
     def get_cell(self, position: tuple[int, int]) -> Cell:
         assert isinstance(position, tuple)
@@ -38,10 +40,10 @@ class BoardManager():
         assert isinstance(position[0], int)
         assert isinstance(position[1], int)
 
-        return self._cells[position[0]][position[1]]
+        return self._board.get_cell(position[0], position[1])
 
     def get_all_cells(self) -> list[list[Cell]]:
-        return self._cells
+        return self._board.get_all()
 
     def set_cell(self, position: tuple[int, int], cell: Cell) -> None:
         assert isinstance(position, tuple)
@@ -50,7 +52,7 @@ class BoardManager():
         assert isinstance(position[1], int)
         assert isinstance(cell, Cell)
 
-        self._cells[position[0]][position[1]] = cell
+        self._board.set_cell(position[0], position[1], cell)
 
     def get_collisions(self, agents: list[Agent]) -> list[tuple[str, str]]:
         assert isinstance(agents, list)

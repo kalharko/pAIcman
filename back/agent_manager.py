@@ -1,5 +1,5 @@
 from back.agent import Agent
-from back.action import Action
+from utils.action import Action
 from back.errors import PacErrUnknownAgentId
 
 

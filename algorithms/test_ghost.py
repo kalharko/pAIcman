@@ -2,8 +2,8 @@ import sys
 sys.path.append(sys.path[0].rstrip(sys.path[0].split('/')[-1]))
 
 from back.pacman_game import PacmanGame
-from back.direction import Direction
-from back.action import Action
+from utils.direction import Direction
+from utils.action import Action
 from back.pacman import Pacman
 from back.ghost import Ghost
 

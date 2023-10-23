@@ -2,10 +2,10 @@ from curses import wrapper
 import os.path as os_path
 import curses
 import locale
-from back.cell import Cell
+from utils.cell import Cell
 
 from back.pacman_game import PacmanGame
-from back.action import Action
+from utils.action import Action
 from back.pacman import Pacman
 from back.agent import Agent
 

@@ -1,4 +1,4 @@
-from back.board import Board
+from utils.board import Board
 
 
 class Perception:
