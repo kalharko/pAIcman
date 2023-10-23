@@ -1,9 +1,9 @@
 from back.board_manager import BoardManager
 from back.agent_manager import AgentManager
 from back.agent import Agent
-from back.action import Action
-from back.errors import PacErrInvalidAction, PacErrAgentInWall
-from back.cell import Cell
+from utils.action import Action
+from back.errors import PacErrAgentInWall
+from utils.cell import Cell
 from back.pacman import Pacman
 
 import os.path as os_path
@@ -46,8 +46,11 @@ class PacmanGame():
                 return PacErrAgentInWall(agent)
         self._agent_manager.set_agents(agents)
 
-    def gather_state(self, agents: list[Agent]) -> None:
-        pass
+    def gather_state(self, agents: list[Agent]) -> tuple[list[list[Cell]], list[Agent]]:
+        return (
+            self._board_manager.get_all_cells(),
+            self._agent_manager.get_all_agents()
+        )
 
     def gather_cli_state(self) -> tuple[list[list[Cell]], list[Agent]]:
         return (
