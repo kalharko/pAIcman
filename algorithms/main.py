@@ -6,6 +6,7 @@ from back.ghost import Ghost
 from utils.board import Board
 from algorithms.pacman_brain import PacmanBrain
 from algorithms.ghost_brain import GhostBrain
+from utils.strategy import Strategy
 
 
 class Main():
@@ -36,8 +37,7 @@ class Main():
             Ghost('Gb2', 26, 5),
             Ghost('Gb3', 1, 29)])
 
-    def run(self) -> None:
-        # simulation cycle
+    def simulation_cycle(self) -> None:
         # gather state
         board, agents = self.environment.gather_state()
 
@@ -58,8 +58,11 @@ class Main():
             self.perception_team_b.update(perception)
 
         # compute strategy
+        strat_team_a = (Strategy['EXPLORATION'] for i in range(4))
+        strat_team_b = (Strategy['EXPLORATION'] for i in range(4))
 
-        # send strategy and perception to agents to compute their action
+        # compute agent actions
+        
 
         # apply to environment
 
