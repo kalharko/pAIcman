@@ -42,6 +42,9 @@ class Board():
     def get_all(self) -> list[list[Cell]]:
         return self._cells
 
+    def get_size(self) -> tuple[int, int]:
+        return (self._width, self._height)
+
     def __str__(self) -> str:
         translation = {
             Cell['EMPTY']: ' ',
@@ -49,7 +52,8 @@ class Board():
             Cell['DOOR']: '_',
             Cell['PAC_DOT']: '.',
             Cell['PAC_GUM']: 'o',
-            Cell['PIPE']: 'P'
+            Cell['PIPE']: 'P',
+            Cell['UNKNOWN']: '~'
         }
         out = ''
         for y in range(self._height):

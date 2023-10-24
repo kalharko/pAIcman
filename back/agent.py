@@ -8,9 +8,12 @@ class Agent():
     _start_x: int
     _start_y: int
     _last_direction: Direction
-    _score : int
+    _score: int
+    _team: int
 
-    def __init__(self, id: str, x: int, y: int) -> None:
+    def __init__(self, team: int, id: str, x: int, y: int) -> None:
+        assert isinstance(team, int)
+        assert team in (0, 1)
         assert isinstance(id, str)
         assert isinstance(x, int)
         assert isinstance(y, int)
@@ -22,6 +25,7 @@ class Agent():
         self._start_y = y
         self._last_direction = Direction['UP']
         self._score = 0
+        self._team = team
 
     def get_position(self) -> tuple[int, int]:
         return (self._x, self._y)
@@ -74,3 +78,12 @@ class Agent():
     def respawn(self):
         self._x = self._start_x
         self._y = self._start_y
+
+    def get_team(self) -> int:
+        return self._team
+
+    def get_x(self) -> int:
+        return self._x
+
+    def get_y(self) -> int:
+        return self._y

@@ -2,6 +2,7 @@ from back.board_manager import BoardManager
 from back.agent_manager import AgentManager
 from back.agent import Agent
 from utils.action import Action
+from utils.board import Board
 from back.errors import PacErrAgentInWall
 from utils.cell import Cell
 from back.pacman import Pacman
@@ -46,11 +47,12 @@ class PacmanGame():
                 return PacErrAgentInWall(agent)
         self._agent_manager.set_agents(agents)
 
-    def gather_state(self, agents: list[Agent]) -> tuple[list[list[Cell]], list[Agent]]:
-        return (
-            self._board_manager.get_all_cells(),
-            self._agent_manager.get_all_agents()
-        )
+    def gather_state(self) -> tuple[tuple[str, Board, tuple[tuple[str, int, int]]]]:
+        out = []
+        for agent in self._agent_manager.get_all_agents():
+             board, agents_seen = self._board_manager.get_vision(agent, self._agent_manager.get_all_agents())
+             out.append((agent.get_id(), board, agents_seen))
+        return tuple(out)
 
     def gather_cli_state(self) -> tuple[list[list[Cell]], list[Agent]]:
         return (
@@ -124,3 +126,6 @@ class PacmanGame():
 
         agent = self._agent_manager.get_agent(action.id)
         agent.move(action.direction)
+
+    def get_board_size(self) -> tuple[int, int]:
+        return self._board_manager.get_board_size()
