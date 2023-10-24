@@ -8,3 +8,4 @@ class Cell(Enum):
     PAC_DOT = 3
     PAC_GUM = 4
     PIPE = 5
+    UNKNOWN = 6

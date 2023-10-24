@@ -45,6 +45,9 @@ class BoardManager():
     def get_all_cells(self) -> list[list[Cell]]:
         return self._board.get_all()
 
+    def get_board_size(self) -> tuple[int, int]:
+        return self._board.get_size()
+
     def set_cell(self, position: tuple[int, int], cell: Cell) -> None:
         assert isinstance(position, tuple)
         assert len(position) == 2
@@ -77,3 +80,43 @@ class BoardManager():
                 if (col, agent.get_id()) not in out:
                     out.append((agent.get_id(), col))
         return out
+
+    def get_vision(self, agent: Agent, agents: list[Agent]) -> tuple[Board, tuple[tuple[str, int, int]]]:
+        assert isinstance(agent, Agent)
+        assert isinstance(agents, list)
+        assert len(agents) > 0
+        assert isinstance(agents[0], Agent)
+
+        # board vision
+        width, height = self._board.get_size()
+        board = Board()
+        board.set_board(
+            [[Cell['UNKNOWN'] for y in range(height)] for x in range(width)]
+            )
+        x, y = agent.get_position()
+        self._board.set_cell(x, y, self._board.get_cell(x, y))
+        for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+            distance = 1
+            cur_x = x + dx * distance
+            cur_y = y + dy * distance
+            while (0 <= cur_x < width and
+                  0 <= cur_y < height and
+                  self._board.get_cell(cur_x, cur_y) != Cell['WALL']):
+                board.set_cell(cur_x, cur_y, self._board.get_cell(cur_x, cur_y))
+                board.set_cell(cur_x + dy, cur_y + dx, self._board.get_cell(cur_x + dy, cur_y + dx))
+                board.set_cell(cur_x - dy, cur_y - dx, self._board.get_cell(cur_x - dy, cur_y - dx))
+
+                distance += 1
+                cur_x = dx * distance
+                cur_y = dy * distance
+
+        # vision of other agents
+        agents_seen = [(agent.get_id(), agent.get_x(), agent.get_y())]
+        for a in agents:
+            if a == agent:
+                continue
+            x, y = a.get_position()
+            if board.get_cell(x, y) != Cell['UNKNOWN']:
+                agents_seen.append((a.get_id(), x, y))
+
+        return (board, tuple(agents_seen))

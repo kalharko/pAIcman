@@ -5,8 +5,8 @@ from back.agent import Agent
 class Ghost(Agent):
     _panic: bool
 
-    def __init__(self, id: str, x: int, y: int) -> None:
-        super().__init__(id, x, y)
+    def __init__(self, team: int, id: str, x: int, y: int) -> None:
+        super().__init__(team, id, x, y)
         self._panic = False
 
     def get_panic(self) -> None:
