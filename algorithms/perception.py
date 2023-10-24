@@ -3,7 +3,8 @@ from utils.cell import Cell
 from copy import deepcopy
 from back.agent import Agent
 
-class Perception:
+
+class Perception():
     _board: Board
     _last_seen: dict[str: list[int, int, int]]  # time, x, y
 

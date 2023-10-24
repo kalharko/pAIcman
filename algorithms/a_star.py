@@ -1,4 +1,4 @@
-class AStar:
+class AStar():
     def __init__(self, game_map, start_cell, goal_cell):
         self.game_map = game_map
         self.start_cell = start_cell
