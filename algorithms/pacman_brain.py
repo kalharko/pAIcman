@@ -8,7 +8,7 @@ from utils.direction import Direction
 from utils.strategy import Strategy
 
 
-class PacmanBrain:
+class PacmanBrain():
     def __init__(self):
         pass
 

@@ -8,7 +8,7 @@ from utils.strategy import Strategy
 from utils.action import Action
 
 
-class GhostBrain:
+class GhostBrain():
     def __init__(self):
         pass
 

@@ -4,8 +4,8 @@ title Simulation cycle
 
 
 actor Main
-entity Pacman
-entity Ghost
+entity PacmanBrain
+entity GhostBrain
 database Perception
 boundary PacmanGame
 
@@ -13,30 +13,32 @@ activate Main
 
 Main -> PacmanGame : gather_state()
 activate PacmanGame
-Main <-- PacmanGame : Board, Agents
+Main <-- PacmanGame : tuple[tuple[str, Board, tuple[tuple[str, int, int]]]]
 deactivate PacmanGame
 
 group parallelism
     Main -> Main : mask_perception(Board, Agents)
 end
 
-Main -> Perception : append(Board, Agents)
+Main -> Perception : time_step()
 activate Perception
+Main <-- Perception
+Main -> Perception : update(Board, agents_seen)
 Main <-- Perception
 deactivate Perception
 Main -> Main : strategy_computation()
 
 group parallelism
-    Main -> Pacman : step(strategy, Peception)
-    activate Pacman
-    Main <-- Pacman : Action
-    deactivate Pacman
+    Main -> PacmanBrain : step(strategy, Peception)
+    activate PacmanBrain
+    Main <-- PacmanBrain : Action
+    deactivate PacmanBrain
 else
-    Main -> Ghost : step(strategy, Peception)
-    deactivate Pacman
-    activate Ghost
-    Main <-- Ghost : Action
-    deactivate Ghost
+    Main -> GhostBrain : step(strategy, Peception)
+    deactivate PacmanBrain
+    activate GhostBrain
+    Main <-- GhostBrain : Action
+    deactivate GhostBrain
 end
 
 Main -> PacmanGame : step(Actions)
