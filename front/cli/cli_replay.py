@@ -15,34 +15,19 @@ class CliReplay():
     _history: list[list[Action]]
     _fancy_walls: list[list[str]]
 
-    def __init__(self, replay) -> None:
-        assert isinstance(replay, tuple)
-        assert len(replay) == 3
-        assert isinstance(replay[0], str)
-        assert os_path.exists(replay[0])
-        assert isinstance(replay[1], list)
-        assert len(replay[1]) > 0
-        assert isinstance(replay[1][0], Agent)
-        assert isinstance(replay[2], list)
-        assert len(replay[2]) > 0
-        assert isinstance(replay[2][0], list)
-        assert len(replay[2][0]) > 0
-        assert isinstance(replay[2][0][0], Action)
+    def __init__(self, environment: PacmanGame) -> None:
+        assert isinstance(environment, PacmanGame)
 
         print('CliReplay.__init__')
 
-        self._path_board = replay[0]
-        self._history = replay[2]
         self._fancy_walls = [[]]
         if input('Start curses replay ? (Y/n)') == 'n':
             return
 
         # game
-        self._game = PacmanGame()
-        self._game.load_map(self._path_board)
-        for agent in replay[1]:
-            agent.respawn()
-        self._game.set_agents(replay[1])
+        self._game = environment
+        self._game.reset()
+        self._history = self._game.get_history()
 
         # start graphical interface
         wrapper(self._start)

@@ -1,3 +1,4 @@
+import copy
 from utils.cell import Cell
 from utils.board import Board
 from back.agent import Agent
@@ -5,6 +6,7 @@ from back.agent import Agent
 
 class BoardManager():
     _board: Board
+    _initial_board: Board
 
     def __init__(self) -> None:
         self._board = Board()
@@ -33,6 +35,7 @@ class BoardManager():
                 x += 1
             y += 1
         self._board.set_board(cells)
+        self._initial_board = copy.deepcopy(self._board)
 
     def get_cell(self, position: tuple[int, int]) -> Cell:
         assert isinstance(position, tuple)
@@ -120,3 +123,6 @@ class BoardManager():
                 agents_seen.append((a.get_id(), x, y))
 
         return (board, tuple(agents_seen))
+
+    def reset(self) -> None:
+        self._board = copy.deepcopy(self._initial_board)

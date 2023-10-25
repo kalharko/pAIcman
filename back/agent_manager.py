@@ -36,3 +36,8 @@ class AgentManager():
 
     def get_all_agents(self) -> list[Agent]:
         return list(self._agents.values())
+
+    def reset_all(self) -> None:
+        for agent in self._agents.values():
+            agent.respawn()
+            agent._score = 0

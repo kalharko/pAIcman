@@ -86,10 +86,10 @@ class Main():
     def mask_perception(self, board: Board, agent: Agent, agents: list[Agent]) -> Perception:
         pass
 
+
 if __name__ == '__main__':
     main = Main()
     for i in range(80):
         main.simulation_cycle()
-        print(main.perception_team_a)
         input()
-    replay = CliReplay(main.environment.get_replay())
+    replay = CliReplay(main.environment)
