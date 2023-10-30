@@ -1,5 +1,4 @@
 from curses import wrapper
-import os.path as os_path
 import curses
 import locale
 from utils.cell import Cell
@@ -7,7 +6,6 @@ from utils.cell import Cell
 from back.pacman_game import PacmanGame
 from utils.action import Action
 from back.pacman import Pacman
-from back.agent import Agent
 
 
 class CliReplay():
@@ -15,34 +13,19 @@ class CliReplay():
     _history: list[list[Action]]
     _fancy_walls: list[list[str]]
 
-    def __init__(self, replay) -> None:
-        assert isinstance(replay, tuple)
-        assert len(replay) == 3
-        assert isinstance(replay[0], str)
-        assert os_path.exists(replay[0])
-        assert isinstance(replay[1], list)
-        assert len(replay[1]) > 0
-        assert isinstance(replay[1][0], Agent)
-        assert isinstance(replay[2], list)
-        assert len(replay[2]) > 0
-        assert isinstance(replay[2][0], list)
-        assert len(replay[2][0]) > 0
-        assert isinstance(replay[2][0][0], Action)
+    def __init__(self, environment: PacmanGame) -> None:
+        assert isinstance(environment, PacmanGame)
 
         print('CliReplay.__init__')
 
-        self._path_board = replay[0]
-        self._history = replay[2]
         self._fancy_walls = [[]]
         if input('Start curses replay ? (Y/n)') == 'n':
             return
 
         # game
-        self._game = PacmanGame()
-        self._game.load_map(self._path_board)
-        for agent in replay[1]:
-            agent.respawn()
-        self._game.set_agents(replay[1])
+        self._game = environment
+        self._game.reset()
+        self._history = self._game.get_history()
 
         # start graphical interface
         wrapper(self._start)
@@ -66,12 +49,13 @@ class CliReplay():
 
         # colors
         curses.init_color(250, 150, 150, 150)  # define gray
-        curses.init_color(251, 200, 0, 200)  # define pink
 
         curses.init_pair(1, curses.COLOR_BLUE, 0)  # wall
         curses.init_pair(2, curses.COLOR_YELLOW, 0)  # pacman
         curses.init_pair(3, 250, 0)  # dots
-        curses.init_pair(4, 251, 0)  # pink ghost
+        curses.init_pair(4, curses.COLOR_MAGENTA, 0)  # pink ghost
+        curses.init_pair(5, curses.COLOR_RED, 0)  # red ghost
+        curses.init_pair(6, curses.COLOR_CYAN, 0)  # cyan ghost
 
         # main loop
         self.main_loop()
@@ -101,8 +85,8 @@ class CliReplay():
         char_cell = [' ', '#', '_', '·', 'Ø']
         color_cell = [0, 1, 3, 3, 3]
         char_pacman = ['ᗢ', 'ᗧ', 'ᗣ', 'ᗤ']
-        char_ghost = 'A'
-        color_ghost = [4]
+        char_ghost = 'ᗝ'
+        color_ghost = [4, 5, 6]
 
         for x in range(len(cells)):
             for y in range(len(cells[0])):
@@ -116,6 +100,7 @@ class CliReplay():
                                     curses.color_pair(color_cell[cells[x][y].value]))
 
         # agents
+        ghost_count = 0
         for agent in agents:
             x, y = agent.get_position()
             if isinstance(agent, Pacman):
@@ -127,15 +112,21 @@ class CliReplay():
                 self._screen.addstr(y + 1,
                                     x + 1,
                                     char_ghost,
-                                    curses.color_pair(4))
+                                    curses.color_pair(color_ghost[ghost_count]))
+                ghost_count += 1
+                ghost_count %= 3
 
-        # score
-        i = 0
-        self._screen.addstr(2, len(cells) + 2, 'Scores', curses.color_pair(3))
-        for agent in agents:
-            if isinstance(agent, Pacman):
-                self._screen.addstr(3 + i, len(cells) + 2, f'{agent.get_id()} : {agent.get_score()}', curses.color_pair(3))
-                i += 1
+        # informations team a
+        self._screen.addstr(2, len(cells) + 2, 'Team A', curses.color_pair(3))
+        self._screen.addstr(3, len(cells) + 2, f'Score : {"xxx"}', curses.color_pair(3))
+        self._screen.addstr(4, len(cells) + 2, f'Exploration : {"xxx%"}', curses.color_pair(3))
+        self._screen.addstr(5, len(cells) + 2, f'Danger : {"xxx"}', curses.color_pair(3))
+
+        # informations team b
+        self._screen.addstr(10, len(cells) + 2, 'Team B', curses.color_pair(3))
+        self._screen.addstr(11, len(cells) + 2, f'Score : {"xxx"}', curses.color_pair(3))
+        self._screen.addstr(12, len(cells) + 2, f'Exploration : {"xxx%"}', curses.color_pair(3))
+        self._screen.addstr(13, len(cells) + 2, f'Danger : {"xxx"}', curses.color_pair(3))
 
     def _load_fancy_walls(self) -> list[list[str]]:
         cells, agents = self._game.gather_cli_state()
@@ -162,6 +153,7 @@ class CliReplay():
                     str((0, 0, 0, 0, 0, 1, 1, 1)): '┐',
                     str((1, 1, 1, 1, 1, 1, 0, 1)): '┐',
                     str((0, 1, 1, 1, 0, 1, 0, 0)): '┐',
+                    str((1, 1, 0, 0, 0, 1, 0, 1)): '┐',
                     str((1, 1, 0, 1, 0, 0, 0, 1)): '└',
                     str((0, 1, 1, 1, 0, 0, 0, 0)): '└',
                     str((0, 1, 0, 1, 1, 1, 0, 0)): '└',
@@ -169,6 +161,7 @@ class CliReplay():
                     str((0, 1, 1, 1, 0, 0, 0, 1)): '┘',
                     str((1, 1, 0, 0, 0, 0, 0, 1)): '┘',
                     str((0, 1, 1, 1, 1, 1, 1, 1)): '┘',
+                    str((0, 1, 0, 0, 0, 1, 1, 1)): '┘',
                     str((0, 0, 0, 1, 0, 1, 1, 1)): '┌',
                     str((0, 0, 0, 1, 1, 1, 0, 0)): '┌',
                     str((1, 1, 1, 1, 0, 1, 1, 1)): '┌',
