@@ -60,9 +60,6 @@ class PacmanGame():
             self._agent_manager.get_all_agents()
         )
 
-    def get_replay(self) -> tuple[str, list[Agent],list[list[Action]]]:
-        return (self._path_board, self._agent_manager.get_all_agents(), self._history)
-
     def step(self, actions: list[Action]) -> None:
         assert isinstance(actions, list)
         assert len(actions) > 0
@@ -129,3 +126,10 @@ class PacmanGame():
 
     def get_board_size(self) -> tuple[int, int]:
         return self._board_manager.get_board_size()
+
+    def reset(self) -> None:
+        self._agent_manager.reset_all()
+        self._board_manager.reset()
+
+    def get_history(self) -> None:
+        return self._history
