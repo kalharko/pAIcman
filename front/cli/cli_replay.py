@@ -51,12 +51,13 @@ class CliReplay():
 
         # colors
         curses.init_color(250, 150, 150, 150)  # define gray
-        curses.init_color(251, 200, 0, 200)  # define pink
 
         curses.init_pair(1, curses.COLOR_BLUE, 0)  # wall
         curses.init_pair(2, curses.COLOR_YELLOW, 0)  # pacman
         curses.init_pair(3, 250, 0)  # dots
-        curses.init_pair(4, 251, 0)  # pink ghost
+        curses.init_pair(4, curses.COLOR_MAGENTA, 0)  # pink ghost
+        curses.init_pair(5, curses.COLOR_RED, 0)  # red ghost
+        curses.init_pair(6, curses.COLOR_CYAN, 0)  # cyan ghost
 
         # main loop
         self.main_loop()
@@ -86,8 +87,8 @@ class CliReplay():
         char_cell = [' ', '#', '_', '·', 'Ø']
         color_cell = [0, 1, 3, 3, 3]
         char_pacman = ['ᗢ', 'ᗧ', 'ᗣ', 'ᗤ']
-        char_ghost = 'A'
-        color_ghost = [4]
+        char_ghost = 'ᗝ'
+        color_ghost = [4, 5, 6]
 
         for x in range(len(cells)):
             for y in range(len(cells[0])):
@@ -101,6 +102,7 @@ class CliReplay():
                                     curses.color_pair(color_cell[cells[x][y].value]))
 
         # agents
+        ghost_count = 0
         for agent in agents:
             x, y = agent.get_position()
             if isinstance(agent, Pacman):
@@ -112,7 +114,9 @@ class CliReplay():
                 self._screen.addstr(y + 1,
                                     x + 1,
                                     char_ghost,
-                                    curses.color_pair(4))
+                                    curses.color_pair(color_ghost[ghost_count]))
+                ghost_count += 1
+                ghost_count %= 3
 
         # score
         i = 0
