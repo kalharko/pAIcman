@@ -1,5 +1,4 @@
 from curses import wrapper
-import os.path as os_path
 import curses
 import locale
 from utils.cell import Cell
@@ -7,7 +6,6 @@ from utils.cell import Cell
 from back.pacman_game import PacmanGame
 from utils.action import Action
 from back.pacman import Pacman
-from back.agent import Agent
 
 
 class CliReplay():
@@ -118,13 +116,17 @@ class CliReplay():
                 ghost_count += 1
                 ghost_count %= 3
 
-        # score
-        i = 0
-        self._screen.addstr(2, len(cells) + 2, 'Scores', curses.color_pair(3))
-        for agent in agents:
-            if isinstance(agent, Pacman):
-                self._screen.addstr(3 + i, len(cells) + 2, f'{agent.get_id()} : {agent.get_score()}', curses.color_pair(3))
-                i += 1
+        # informations team a
+        self._screen.addstr(2, len(cells) + 2, 'Team A', curses.color_pair(3))
+        self._screen.addstr(3, len(cells) + 2, f'Score : {"xxx"}', curses.color_pair(3))
+        self._screen.addstr(4, len(cells) + 2, f'Exploration : {"xxx%"}', curses.color_pair(3))
+        self._screen.addstr(5, len(cells) + 2, f'Danger : {"xxx"}', curses.color_pair(3))
+
+        # informations team b
+        self._screen.addstr(10, len(cells) + 2, 'Team B', curses.color_pair(3))
+        self._screen.addstr(11, len(cells) + 2, f'Score : {"xxx"}', curses.color_pair(3))
+        self._screen.addstr(12, len(cells) + 2, f'Exploration : {"xxx%"}', curses.color_pair(3))
+        self._screen.addstr(13, len(cells) + 2, f'Danger : {"xxx"}', curses.color_pair(3))
 
     def _load_fancy_walls(self) -> list[list[str]]:
         cells, agents = self._game.gather_cli_state()
@@ -151,6 +153,7 @@ class CliReplay():
                     str((0, 0, 0, 0, 0, 1, 1, 1)): '┐',
                     str((1, 1, 1, 1, 1, 1, 0, 1)): '┐',
                     str((0, 1, 1, 1, 0, 1, 0, 0)): '┐',
+                    str((1, 1, 0, 0, 0, 1, 0, 1)): '┐',
                     str((1, 1, 0, 1, 0, 0, 0, 1)): '└',
                     str((0, 1, 1, 1, 0, 0, 0, 0)): '└',
                     str((0, 1, 0, 1, 1, 1, 0, 0)): '└',
@@ -158,6 +161,7 @@ class CliReplay():
                     str((0, 1, 1, 1, 0, 0, 0, 1)): '┘',
                     str((1, 1, 0, 0, 0, 0, 0, 1)): '┘',
                     str((0, 1, 1, 1, 1, 1, 1, 1)): '┘',
+                    str((0, 1, 0, 0, 0, 1, 1, 1)): '┘',
                     str((0, 0, 0, 1, 0, 1, 1, 1)): '┌',
                     str((0, 0, 0, 1, 1, 1, 0, 0)): '┌',
                     str((1, 1, 1, 1, 0, 1, 1, 1)): '┌',
