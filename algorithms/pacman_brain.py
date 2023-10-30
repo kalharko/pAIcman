@@ -1,6 +1,6 @@
 import random
 from algorithms.a_star import AStar
-from algorithms.perception import Perception
+from back.perception import Perception
 from algorithms.q_iteration import QIteration
 from algorithms.hunter_prey import HunterPrey
 from utils.action import Action
