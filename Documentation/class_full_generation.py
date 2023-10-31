@@ -3,6 +3,7 @@ import os
 
 
 targets = (
+    './',
     'utils/',
     'back/',
     'algorithms/',
@@ -23,8 +24,6 @@ for target in targets:
             lines = file.readlines()
         print()
         print(target + path)
-        for line in lines:
-            print(line, end='')
 
         # find class, attributs and function definitions
         try:

@@ -1,10 +1,10 @@
 from back.board_manager import BoardManager
 from back.agent_manager import AgentManager
 from back.agent import Agent
+from back.team import Team
 from utils.action import Action
-from utils.board import Board
 from back.errors import PacErrAgentInWall
-from utils.cell import Cell
+from back.cell import Cell
 from back.pacman import Pacman
 
 import os.path as os_path
@@ -27,32 +27,24 @@ class PacmanGame():
 
         if not os_path.exists(path):
             return FileNotFoundError()
+        self._path_board = path
 
         with open(path, 'r') as file:
             lines = file.readlines()
 
-        if err := self._board_manager.load(lines) is not None:
-            return err
+        # load board
+        board_description = lines[lines.index('|\n') + 1:]
+        self._board_manager.load(board_description)
 
-        self._path_board = path
+        # load agents
+        agents_description = lines[:lines.index('|\n')]
+        self._agent_manager.load(agents_description, self._board_manager.get_board_size())
 
-    def set_agents(self, agents: list[Agent]) -> None:
-        assert isinstance(agents, list)
-        assert len(agents) > 0
-        assert isinstance(agents[0], Agent)
+        # first perception
+        self._agent_manager.update_perceptions(self._board_manager)
 
-        for agent in agents:
-            cell = self._board_manager.get_cell(agent.get_position())
-            if cell == Cell['WALL'] or cell == Cell['DOOR']:
-                return PacErrAgentInWall(agent)
-        self._agent_manager.set_agents(agents)
-
-    def gather_state(self) -> tuple[tuple[str, Board, tuple[tuple[str, int, int]]]]:
-        out = []
-        for agent in self._agent_manager.get_all_agents():
-             board, agents_seen = self._board_manager.get_vision(agent, self._agent_manager.get_all_agents())
-             out.append((agent.get_id(), board, agents_seen))
-        return tuple(out)
+    def gather_state(self) -> tuple[Team]:
+        return self._agent_manager.get_teams()
 
     def gather_cli_state(self) -> tuple[list[list[Cell]], list[Agent]]:
         return (
@@ -65,6 +57,8 @@ class PacmanGame():
         assert len(actions) > 0
         assert isinstance(actions[0], Action)
 
+        # apply actions
+        self._history.append(actions)
         for action in actions:
             if self._can_apply(action):
                 self._apply(action)
@@ -77,6 +71,9 @@ class PacmanGame():
                 else:
                     continue  # correct behavior ?
 
+        # update team's perception
+        self._agent_manager.update_perceptions(self._board_manager)
+
         # check collision
         collisions = self._board_manager.get_collisions(self._agent_manager.get_all_agents())
 
@@ -87,9 +84,9 @@ class PacmanGame():
             if isinstance(col[1], Cell):
                 if isinstance(agent, Pacman):
                     if col[1] == Cell['WALL']:
-                        return PacErrPacmanInWall(col)
+                        return PacErrAgentInWall(col)
                     elif col[1] == Cell['DOOR']:
-                        return PacErrPacmanInWall(col)
+                        return PacErrAgentInWall(col)
                     elif col[1] == Cell['PAC_DOT']:
                         agent.add_score(5)
                         self._board_manager.set_cell(agent.get_position(), Cell['EMPTY'])
@@ -99,8 +96,6 @@ class PacmanGame():
             # collision with agent
             else:
                 pass
-
-        self._history.append(actions)
 
     def _can_apply(self, action: Action) -> bool:
         assert isinstance(action, Action)
@@ -120,7 +115,6 @@ class PacmanGame():
 
     def _apply(self, action) -> None:
         assert isinstance(action, Action)
-
         agent = self._agent_manager.get_agent(action.id)
         agent.move(action.direction)
 
@@ -128,7 +122,7 @@ class PacmanGame():
         return self._board_manager.get_board_size()
 
     def reset(self) -> None:
-        self._agent_manager.reset_all()
+        self._agent_manager.reset()
         self._board_manager.reset()
 
     def get_history(self) -> None:
