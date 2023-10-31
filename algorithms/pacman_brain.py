@@ -1,14 +1,12 @@
 import random
-from algorithms.a_star import AStar
+from algorithms.brain import Brain
 from back.perception import Perception
-from algorithms.q_iteration import QIteration
-from algorithms.hunter_prey import HunterPrey
 from utils.action import Action
 from utils.direction import Direction
 from utils.strategy import Strategy
 
 
-class PacmanBrain():
+class PacmanBrain(Brain):
     def __init__(self):
         pass
 
