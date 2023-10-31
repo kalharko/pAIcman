@@ -1,5 +1,5 @@
-from utils.board import Board
-from utils.cell import Cell
+from back.board import Board
+from back.cell import Cell
 from copy import deepcopy
 
 

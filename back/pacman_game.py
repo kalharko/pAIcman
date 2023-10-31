@@ -4,7 +4,7 @@ from back.agent import Agent
 from back.team import Team
 from utils.action import Action
 from back.errors import PacErrAgentInWall
-from utils.cell import Cell
+from back.cell import Cell
 from back.pacman import Pacman
 
 import os.path as os_path

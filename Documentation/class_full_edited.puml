@@ -1,5 +1,6 @@
 @startuml class_full
 title Auto generated class diagram
+
 package utils {
 class Action{
 +id: str
@@ -7,20 +8,6 @@ class Action{
 + __init__(self, id: str, direction: Direction) -> None
 }
 Action *-- Direction : direction
-
-class Board{
--_cells: list[list[Cell]]
--_width: int
--_height: int
-+ __init__(self) -> None
-+ set_board(self, board: list[list[Cell]]) -> None
-+ set_cell(self, x: int, y: int, value: Cell) -> None
-+ get_cell(self, x: int, y: int) -> Cell
-+ get_all(self) -> list[list[Cell]]
-+ get_size(self) -> tuple[int, int]
-+ __str__(self) -> str
-}
-Board *-- Cell : _cells
 
 }
 package back {
@@ -48,32 +35,48 @@ class Agent{
 }
 
 class AgentManager{
--_agents: dict[Agent]
+-_teams: list[Team]
 + __init__(self) -> None
-+ set_agents(self, agents: list[Agent]) -> None
++ load(self, source: list[str], board_size: tuple[int, int]) -> None
 + apply(self, action: Action) -> bool
++ update_perceptions(self, board_manager: BoardManager) -> None
 + get_agent(self, id: str) -> Agent
-+ get_all_agents(self) -> list[Agent]
++ get_all_agents(self) -> tuple[Agent]
++ get_teams(self) -> tuple[Team]
++ get_ids(self) -> tuple[str]
++ reset(self) -> None
 }
-AgentManager *-- Agent : _agents
+AgentManager *-- Team : _teams
+
+class Board{
+-_cells: list[list[Cell]]
+-_width: int
+-_height: int
++ __init__(self) -> None
++ set_board(self, board: list[list[Cell]]) -> None
++ set_cell(self, x: int, y: int, value: Cell) -> None
++ get_cell(self, x: int, y: int) -> Cell
++ get_all(self) -> list[list[Cell]]
++ get_size(self) -> tuple[int, int]
++ __str__(self) -> str
+}
+Board *-r- Cell : _cells
 
 class BoardManager{
 -_board: Board
+-_initial_board: Board
 + __init__(self) -> None
 + load(self, source: list[str]) -> None
 + get_cell(self, position: tuple[int, int]) -> Cell
 + get_all_cells(self) -> list[list[Cell]]
 + get_board_size(self) -> tuple[int, int]
 + set_cell(self, position: tuple[int, int], cell: Cell) -> None
-+ get_collisions(self, agents: list[Agent]) -> list[tuple[str, str]]
-+ get_vision(self, agent: Agent, agents: list[Agent]) -> tuple[Board, tuple[tuple[str, int, int]]]
++ get_collisions(self, agents: tuple[Agent]) -> list[tuple[str, str]]
++ get_vision(self, agent: Agent, other_team_agents: tuple[Agent]) -> Perception
++ reset(self) -> None
 }
 BoardManager *-- Board : _board
-
-class PacErrAgentInWall{
-+ __init__(self, source: str = 'Unknown') -> None
-}
-PacErrAgentInWall <|-- PacErrGeneric
+BoardManager *-- Board : _initial_board
 
 class Ghost{
 -_panic: bool
@@ -95,17 +98,53 @@ class PacmanGame{
 -_history: list[list[Action]]
 + __init__(self) -> None
 + load_map(self, path: str) -> None
-+ set_agents(self, agents: list[Agent]) -> None
-+ gather_state(self) -> tuple[tuple[str, Board, tuple[tuple[str, int, int]]]]
++ gather_state(self) -> tuple[Team]
 + gather_cli_state(self) -> tuple[list[list[Cell]], list[Agent]]
-+ get_replay(self) -> tuple[str, list[Agent],list[list[Action]]]
 + step(self, actions: list[Action]) -> None
 + _can_apply(self, action: Action) -> bool
 + _apply(self, action) -> None
 + get_board_size(self) -> tuple[int, int]
++ reset(self) -> None
++ get_history(self) -> None
 }
 PacmanGame *-- BoardManager : _board_manager
 PacmanGame *-- AgentManager : _agent_manager
+
+class Perception{
+-_board: Board
+-_last_seen: dict[str: list[int, int, int]]  # time, x, y
++ __init__(self, board_size: tuple[int, int]) -> None
++ set_board(self, board: Board) -> None
++ step_time(self) -> None
++ update(self, other: 'Perception') -> None
++ get_board(self) -> Board
++ get_last_seen(self) -> dict
++ update_agent_seen(self, agent_id, position) -> None
++ __str__(self) -> str
+}
+Perception *-- Board : _board
+
+class Team{
+-_pacman: Pacman
+-_ghosts: list[Ghost]
+-_perception: Perception
+-_score: int
++ __init__(self, board_size: tuple[int, int]) -> None
++ set_pacman(self, value: Pacman) -> None
++ add_ghost(self, value: Ghost) -> None
++ get_agents(self) -> tuple[Agent]
++ get_agent(self, id: str) -> Agent
++ get_pacman(self) -> Pacman
++ get_ghosts(self) -> tuple[Ghost]
++ get_ids(self) -> tuple[str]
++ get_perception(self) -> Perception
++ get_score(self) -> int
++ update_perception(self, board_manager: BoardManager, other_team: 'Team') -> None
++ reset(self) -> None
+}
+Team *-- Pacman : _pacman
+Team *-- Ghost : _ghosts
+Team *-- Perception : _perception
 
 }
 package algorithms {
@@ -120,6 +159,7 @@ class GhostBrain{
 + __init__(self)
 + compute_action(self, strategy: Strategy, perception: Perception, id: str) -> Action
 }
+GhostBrain <|-- Brain
 GhostBrain *-- AStar
 GhostBrain *-- HunterPrey
 GhostBrain *-- QIteration
@@ -128,42 +168,14 @@ class HunterPrey{
 + __init__(self)
 }
 
-class Main{
-+perception_team_a: Perception
-+perception_team_b: Perception
-+id_team_a: tuple[str]
-+id_team_b: tuple[str]
-+brain_pacman: PacmanBrain
-+brain_ghost: GhostBrain
-+environment: PacmanGame
-+ __init__(self) -> None
-+ simulation_cycle(self) -> None
-+ mask_perception(self, board: Board, agent: Agent, agents: list[Agent]) -> Perception
-}
-Main *-- Perception : perception_team_a
-Main *-- Perception : perception_team_b
-Main *-- PacmanBrain : brain_pacman
-Main *-- GhostBrain : brain_ghost
-Main *-- PacmanGame : environment
-
 class PacmanBrain{
 + __init__(self)
 + compute_action(self, strategy: Strategy, perception: Perception, id: str) -> Action
 }
+PacmanBrain <|-- Brain
 PacmanBrain *-- AStar
 PacmanBrain *-- HunterPrey
 PacmanBrain *-- QIteration
-
-class Perception{
--_board: Board
--_last_seen: dict[str: list[int, int, int]]  # time, x, y
-+ __init__(self, board_size: tuple[int, int], agent_ids: tuple[str]) -> None
-+ set_board(self, board: Board) -> None
-+ step_time(self) -> None
-+ update(self, board: Board, agent_seen: tuple[tuple[str, int, int]]) -> None
-+ __str__(self) -> str
-}
-Perception *-- Board : _board
 
 class QIteration{
 + __init__(self)
@@ -175,7 +187,8 @@ class CliReplay{
 -_path_board: str
 -_history: list[list[Action]]
 -_fancy_walls: list[list[str]]
-+ __init__(self, replay) -> None
+-_step_count: int
++ __init__(self, environment: PacmanGame) -> None
 + _start(self, stdscr) -> None
 + main_loop(self) -> None
 + display(self) -> None
@@ -183,4 +196,23 @@ class CliReplay{
 }
 
 }
+
+class Main{
++id_team_a: tuple[str]
++id_team_b: tuple[str]
++brain_pacman: PacmanBrain
++brain_ghost: GhostBrain
++environment: PacmanGame
++ __init__(self) -> None
++ simulation_cycle(self) -> None
+}
+Main *-- PacmanBrain : brain_pacman
+Main *-- GhostBrain : brain_ghost
+Main *-l- PacmanGame : environment
+Main o-r- CliReplay : replay
+
+' invisible organisational links
+Action -u[hidden]- AStar
+BoardManager -r[hidden]- Team
+
 @enduml

@@ -1,7 +1,7 @@
 import copy
 from back.perception import Perception
-from utils.cell import Cell
-from utils.board import Board
+from back.cell import Cell
+from back.board import Board
 from back.agent import Agent
 
 

@@ -1,6 +1,3 @@
-import sys
-sys.path.append(sys.path[0].rstrip(sys.path[0].split('/')[-1]))
-
 from back.pacman_game import PacmanGame
 from back.pacman import Pacman
 from algorithms.pacman_brain import PacmanBrain

@@ -2,7 +2,7 @@ import copy
 from curses import wrapper
 import curses
 import locale
-from utils.cell import Cell
+from back.cell import Cell
 
 from back.pacman_game import PacmanGame
 from utils.action import Action
