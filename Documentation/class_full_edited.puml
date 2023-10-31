@@ -9,6 +9,20 @@ class Action{
 }
 Action *-- Direction : direction
 
+enum Direction {
+    UP
+    RIGHT
+    DOWN
+    LEFT
+}
+
+enum Strategy {
+    EXPLORATION
+    AGRESSION
+    DEFENSE
+    RANDOM
+}
+
 }
 package back {
 class Agent{
@@ -61,6 +75,16 @@ class Board{
 + __str__(self) -> str
 }
 Board *-r- Cell : _cells
+
+enum Cell {
+    EMPTY
+    WALL
+    DOOR
+    PAC_DOT
+    PAC_GUM
+    PIPE
+    UNKNOWN
+}
 
 class BoardManager{
 -_board: Board
