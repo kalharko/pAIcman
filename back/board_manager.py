@@ -85,9 +85,9 @@ class BoardManager():
                     out.append((agent.get_id(), col))
         return out
 
-    def get_vision(self, agent: Agent, other_team_agents: list[Agent]) -> Perception:
+    def get_vision(self, agent: Agent, other_team_agents: tuple[Agent]) -> Perception:
         assert isinstance(agent, Agent)
-        assert isinstance(other_team_agents, list)
+        assert isinstance(other_team_agents, tuple)
         assert len(other_team_agents) > 0
         assert isinstance(other_team_agents[0], Agent)
 
@@ -99,17 +99,20 @@ class BoardManager():
         x, y = agent.get_position()
         self._board.set_cell(x, y, self._board.get_cell(x, y))
         for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
-            distance = 1
+            distance = 0
             cur_x = x + dx * distance
             cur_y = y + dy * distance
-            while (0 <= cur_x < width and 0 <= cur_y < height and self._board.get_cell(cur_x, cur_y) != Cell['WALL']):
+            while (0 <= cur_x < width and 0 <= cur_y < height):
                 board.set_cell(cur_x, cur_y, self._board.get_cell(cur_x, cur_y))
                 board.set_cell(cur_x + dy, cur_y + dx, self._board.get_cell(cur_x + dy, cur_y + dx))
                 board.set_cell(cur_x - dy, cur_y - dx, self._board.get_cell(cur_x - dy, cur_y - dx))
 
+                if self._board.get_cell(cur_x, cur_y) == Cell['WALL']:
+                    break
+
                 distance += 1
-                cur_x = dx * distance
-                cur_y = dy * distance
+                cur_x = x + dx * distance
+                cur_y = y + dy * distance
 
         # vision of other agents
         out.update_agent_seen(agent.get_id(), agent.get_position())
@@ -118,7 +121,7 @@ class BoardManager():
                 continue
             x, y = a.get_position()
             if board.get_cell(x, y) != Cell['UNKNOWN']:
-                out.update_agent_seen(a.get_id, (x, y))
+                out.update_agent_seen(a.get_id(), (x, y))
 
         return out
 

@@ -35,13 +35,12 @@ class Perception():
         other_board = other.get_board()
         for x in range(width):
             for y in range(height):
-                if self._board.get_cell == Cell['UNKNOWN']:
+                if self._board.get_cell(x, y) == Cell['UNKNOWN']:
                     self._board.set_cell(x, y, other_board.get_cell(x, y))
-
         # update agents seen
         for id, value in other.get_last_seen().items():
             if value[0] == 0:
-                self._last_seen[id] = value
+                self._last_seen[id] = list(value)
 
     def get_board(self) -> Board:
         return self._board
@@ -53,4 +52,4 @@ class Perception():
         self._last_seen[agent_id] = (0, position)
 
     def __str__(self) -> str:
-        return str(self._board) + '\n' + str(self._last_seen)
+        return str(self._board) + str(self._last_seen) + '\n'

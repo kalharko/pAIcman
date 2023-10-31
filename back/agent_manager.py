@@ -1,4 +1,5 @@
 from back.agent import Agent
+from back.board_manager import BoardManager
 from back.ghost import Ghost
 from back.pacman import Pacman
 from back.team import Team
@@ -32,10 +33,19 @@ class AgentManager():
     def apply(self, action: Action) -> bool:
         assert isinstance(action, Action)
 
-        if action.id not in self._agents.keys():
-            return PacErrUnknownAgentId(self)
+        for team in self._teams:
+            if id in team.get_ids():
+                team.get_agent(id).move(action.direction)
+                return
+        return PacErrUnknownAgentId(self)
 
-        self._agents[action.id].move((action.direction))
+    def update_perceptions(self, board_manager: BoardManager) -> None:
+        assert isinstance(board_manager, BoardManager)
+
+        # for the moment, only work with 2 teams
+        assert len(self._teams) == 2
+        self._teams[0].update_perception(board_manager, self._teams[1])
+        self._teams[1].update_perception(board_manager, self._teams[0])
 
     def get_agent(self, id: str) -> Agent:
         assert isinstance(id, str)
@@ -53,6 +63,12 @@ class AgentManager():
 
     def get_teams(self) -> tuple[Team]:
         return tuple(self._teams)
+
+    def get_ids(self) -> tuple[str]:
+        out = []
+        for team in self._teams:
+            out += list(team.get_ids())
+        return tuple(out)
 
     def reset(self) -> None:
         for team in self._teams:

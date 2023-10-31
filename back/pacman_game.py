@@ -27,17 +27,21 @@ class PacmanGame():
 
         if not os_path.exists(path):
             return FileNotFoundError()
+        self._path_board = path
 
         with open(path, 'r') as file:
             lines = file.readlines()
 
-        agents_description = lines[:lines.index('|\n')]
+        # load board
         board_description = lines[lines.index('|\n') + 1:]
-
         self._board_manager.load(board_description)
+
+        # load agents
+        agents_description = lines[:lines.index('|\n')]
         self._agent_manager.load(agents_description, self._board_manager.get_board_size())
 
-        self._path_board = path
+        # first perception
+        self._agent_manager.update_perceptions(self._board_manager)
 
     def gather_state(self) -> tuple[Team]:
         return self._agent_manager.get_teams()
@@ -53,6 +57,8 @@ class PacmanGame():
         assert len(actions) > 0
         assert isinstance(actions[0], Action)
 
+        # apply actions
+        self._history.append(actions)
         for action in actions:
             if self._can_apply(action):
                 self._apply(action)
@@ -64,6 +70,9 @@ class PacmanGame():
                     self._apply(last_action)
                 else:
                     continue  # correct behavior ?
+
+        # update team's perception
+        self._agent_manager.update_perceptions(self._board_manager)
 
         # check collision
         collisions = self._board_manager.get_collisions(self._agent_manager.get_all_agents())
@@ -88,8 +97,6 @@ class PacmanGame():
             else:
                 pass
 
-        self._history.append(actions)
-
     def _can_apply(self, action: Action) -> bool:
         assert isinstance(action, Action)
 
@@ -108,7 +115,6 @@ class PacmanGame():
 
     def _apply(self, action) -> None:
         assert isinstance(action, Action)
-
         agent = self._agent_manager.get_agent(action.id)
         agent.move(action.direction)
 

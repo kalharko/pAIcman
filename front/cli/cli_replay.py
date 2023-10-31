@@ -1,3 +1,4 @@
+import copy
 from curses import wrapper
 import curses
 import locale
@@ -12,6 +13,7 @@ class CliReplay():
     _path_board: str
     _history: list[list[Action]]
     _fancy_walls: list[list[str]]
+    _step_count: int
 
     def __init__(self, environment: PacmanGame) -> None:
         assert isinstance(environment, PacmanGame)
@@ -19,13 +21,14 @@ class CliReplay():
         print('CliReplay.__init__')
 
         self._fancy_walls = [[]]
+        self._step_count = 0
         if input('Start curses replay ? (Y/n)') == 'n':
             return
 
         # game
         self._game = environment
         self._game.reset()
-        self._history = self._game.get_history()
+        self._history = copy.copy(self._game.get_history())
 
         # start graphical interface
         wrapper(self._start)
@@ -74,6 +77,7 @@ class CliReplay():
                 return
 
             self._game.step(step)
+            self._step_count += 1
 
     def display(self) -> None:
         self._screen.erase()
@@ -115,6 +119,9 @@ class CliReplay():
                                     curses.color_pair(color_ghost[ghost_count]))
                 ghost_count += 1
                 ghost_count %= 3
+
+        # step count
+        self._screen.addstr(1, len(cells) + 2, f'steps: {len(self._history)}', curses.color_pair(3))
 
         # informations team a
         self._screen.addstr(2, len(cells) + 2, 'Team A', curses.color_pair(3))
