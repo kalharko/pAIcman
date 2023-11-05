@@ -1,3 +1,4 @@
+from algorithms.utility import Utility
 from back.pacman_game import PacmanGame
 from back.pacman import Pacman
 from algorithms.pacman_brain import PacmanBrain
@@ -18,9 +19,12 @@ class Main():
         self.environment = PacmanGame()
         self.environment.load_map('maps/original.txt')
 
-        # other
+        # brains
         self.brain_ghost = GhostBrain()
         self.brain_pacman = PacmanBrain()
+
+        # other
+        self.utility = Utility()
 
     def simulation_cycle(self) -> None:
         # gather state
@@ -48,10 +52,27 @@ class Main():
         # apply to environment
         self.environment.step(actions)
 
+    def utility_cycle(self) -> None:
+        # gather state
+        team_a, team_b = self.environment.gather_state()
+
+        # compute actions using utility
+        actions = self.utility.run(team_a)
+        for action in actions:
+            print(action, end=' ')
+        print()
+        actions += self.utility.run(team_b)
+
+        # apply to environment
+        self.environment.step(actions)
+
 
 if __name__ == '__main__':
     main = Main()
-    for i in range(10):
-        main.simulation_cycle()
-        input()
+    # main.simulation_cycle()
+    for i in range(100):
+        # main.simulation_cycle()
+        main.utility_cycle()
+        if input() == 'q':
+            break
     replay = CliReplay(main.environment)

@@ -97,7 +97,7 @@ class BoardManager():
         # board vision
         width, height = board.get_size()
         x, y = agent.get_position()
-        self._board.set_cell(x, y, self._board.get_cell(x, y))
+        # self._board.set_cell(x, y, self._board.get_cell(x, y))  # wtf is this line ?
         for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
             distance = 0
             cur_x = x + dx * distance
