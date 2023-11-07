@@ -133,7 +133,7 @@ class Utility():
 
     def utility(self, positions, team: Team) -> float:
         # simple combination of the following metrics :
-        # - distance to score gain TODO
+        # - distance to score gain
         # - distance to explored cell gain
         # - team's agent danger level
         # - other team's agent danger level
@@ -146,7 +146,7 @@ class Utility():
         flood_fill = FloodFill(board)
         astar = AStar(board)
 
-        # score gain
+        # distance to score gain
         pacman_pos = team.get_pacman().get_position()
         min_dist_to_score = flood_fill.closest_cell(pacman_pos[0], pacman_pos[1], Cell['PAC_DOT'])
 
@@ -163,4 +163,4 @@ class Utility():
         # other team's agent danger level
         # TODO
 
-        return -min_dist_to_score - sum(min_dist_to_unknown)
+        return 1 / (1 + min_dist_to_score) + 1 / sum(min_dist_to_unknown)

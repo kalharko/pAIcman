@@ -71,6 +71,6 @@ class Team():
 
     def __str__(self) -> str:
         out = 'Team\n'
-        out += str(self.get_ids())
-        out += str(self._perception)
+        out += str(list(self.get_ids())) + '\n'
+        out += str(self._perception) + '\n'
         return out
