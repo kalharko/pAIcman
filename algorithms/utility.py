@@ -1,13 +1,11 @@
 
 
 import copy
-from back.agent import Agent
-from back.board import Board
-from back.perception import Perception
 from back.team import Team
 from utils.action import Action
 from utils.direction import Direction
 from back.cell import Cell
+from algorithms.a_star import AStar
 
 
 class Utility():
@@ -128,7 +126,7 @@ class Utility():
         return new_out
 
     def utility(self, positions, team: Team) -> float:
-        # simple combinaison des attributs suivants :
+        # simple combination of the following metrics :
         # - distance to score gain TODO
         # - distance to explored cell gain
         # - team's agent danger level
@@ -136,16 +134,52 @@ class Utility():
 
         # general data
         board = team.get_perception().get_board()
+        width, height = board.get_size()
         team_ids = list(team.get_ids())
         all_ids = list(team.get_perception().get_agents_seen().keys())
-        # other_ids = all_ids.remove(team_ids)
+        astar = AStar(board)
 
         # score gain
-        # TODO replace by distance to closest pacdot
-        score_gain = 0
+        # TODO do better
         pacman_pos = team.get_pacman().get_position()
-        if board.get_cell(pacman_pos[0], pacman_pos[1]) == Cell['PAC_DOT']:
-            score_gain += 1
+        min_dist = 100
+        step = 0
+        x, y = pacman_pos
+        if board.get_cell(x, y) == Cell['PAC_DOT']:
+            min_dist = 0
+        else:
+            for d in range(0, 5, 2):
+                for i in range(d):
+                    y -= 1
+                    if board.get_cell(x, y) == Cell['PAC_DOT']:
+                        if (d := astar.distance(pacman_pos, (x, y))) < min_dist:
+                            min_dist = d
+                            step = 0
+                for i in range(d):
+                    x -= 1
+                    if board.get_cell(x, y) == Cell['PAC_DOT']:
+                        if (d := astar.distance(pacman_pos, (x, y))) < min_dist:
+                            min_dist = d
+                            step = 0
+                for i in range(d):
+                    y += 1
+                    if board.get_cell(x, y) == Cell['PAC_DOT']:
+                        if (d := astar.distance(pacman_pos, (x, y))) < min_dist:
+                            min_dist = d
+                            step = 0
+                for i in range(d):
+                    x += 1
+                    if board.get_cell(x, y) == Cell['PAC_DOT']:
+                        if (d := astar.distance(pacman_pos, (x, y))) < min_dist:
+                            min_dist = d
+                            step = 0
+                step += 1
+                if step > 2 or min_dist < 2:
+                    break
+                print(f'step {step}')
+                x += 1
+                y += 1
+        score_gain = -min_dist
 
         # explored cell gain
         exploration_gain = 0
@@ -154,7 +188,6 @@ class Utility():
                 continue
 
             # inneficient repeat of agent vision algorithm
-            width, height = board.get_size()
             x, y = position
             for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
                 distance = 1
