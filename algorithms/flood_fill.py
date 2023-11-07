@@ -21,25 +21,27 @@ class FloodFill():
             distance, x, y = unvisited.pop(0)
             visited.append((x, y))
 
-            # skip if visiting a node farther from the known best
-            if distance + 1 >= min_distance_found:
-                continue
-
             # check neighbors
             for dx, dy in ((-1, 0), (0, -1), (1, 0), (0, -1)):
-                cell = self.board.get_cell(x + dx, y + dy)
                 # continue if already visited
                 if (x + dx, y + dy) in visited:
                     continue
+                cell = self.board.get_cell(x + dx, y + dy)
                 # register and continue if is what we are looking for
                 if cell == searching_for:
                     if distance + 1 < min_distance_found:
                         min_distance_found = distance + 1
                     continue
                 # continue if is a wall
-                if cell in (Cell['WALL'], Cell['DOOR']):
+                if cell in (Cell['WALL'], Cell['DOOR'], Cell['UNKNOWN']):
                     continue
-                # else, add to unvisited
-                unvisited.append((distance + 1, x + dx, y + dy))
-                
+                # if not too far, add to unvisited
+                if distance + 1 < min_distance_found:
+                    unvisited.append((distance + 1, x + dx, y + dy))
+                if len(visited) > 5000:
+                    print(self.board)
+                    print(og_x, og_y)
+                    print(searching_for)
+                    exit()
+
         return min_distance_found
