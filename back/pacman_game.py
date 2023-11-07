@@ -103,15 +103,13 @@ class PacmanGame():
         agent = self._agent_manager.get_agent(action.id)
         cell = self._board_manager.get_cell(agent.try_move(action.direction))
 
-        out = False
         if isinstance(agent, Pacman):
             if cell not in (Cell['WALL'], Cell['DOOR']):
-                out = True
+                return True
         else:
             if cell != Cell['WALL']:
-                out = True
-
-        return out
+                return True
+        return False
 
     def _apply(self, action) -> None:
         assert isinstance(action, Action)

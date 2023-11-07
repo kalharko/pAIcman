@@ -39,6 +39,18 @@ class Board():
 
         return self._cells[x][y]
 
+    def get_cell_neighbors(self, x: int, y: int) -> list[Cell]:
+        assert isinstance(x, int)
+        assert isinstance(y, int)
+        assert 0 <= x < self._width
+        assert 0 <= y < self._height
+
+        out = []
+        for dx, dy in ((-1, 0), (0, -1), (1, 0), (0, -1)):
+            out.append(self._cells[x + dx][y + dy])
+        return out
+
+
     def get_all(self) -> list[list[Cell]]:
         return self._cells
 

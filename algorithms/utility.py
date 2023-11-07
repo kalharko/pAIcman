@@ -1,6 +1,8 @@
 
 
 import copy
+import random
+from algorithms.flood_fill import FloodFill
 from back.team import Team
 from utils.action import Action
 from utils.direction import Direction
@@ -34,6 +36,7 @@ class Utility():
         other_ids = copy.copy(all_ids)
         for id in team_ids:
             other_ids.remove(id)
+        astar = AStar(board)
 
         # decisional agent's team agents positions and probability
         for agent in team.get_agents():
@@ -56,7 +59,7 @@ class Utility():
             # iterate on positions of a square of size how_long_ago, centered on agent last seen position
             for dx in range(-how_long_ago, how_long_ago + 1):
                 for dy in range(-how_long_ago, how_long_ago + 1):
-                    # quit if distance is to great for the agent to have reached iit
+                    # quit if distance is to great for the agent to have reached it
                     if abs(dx) + abs(dy) > how_long_ago:
                         continue
                     x, y = og_x + dx, og_y + dy
@@ -65,6 +68,9 @@ class Utility():
                         continue
                     # quit if is an illegal position
                     if board.get_cell(x, y) in (Cell['WALL'], Cell['DOOR']):
+                        continue
+                    # second, more precise check of distance
+                    if astar.distance((x, y), (og_x, og_y)) > how_long_ago:
                         continue
                     # finaly position is valid, so we keep it
                     if not (x, y) in positions:
@@ -137,72 +143,19 @@ class Utility():
         width, height = board.get_size()
         team_ids = list(team.get_ids())
         all_ids = list(team.get_perception().get_agents_seen().keys())
+        flood_fill = FloodFill(board)
         astar = AStar(board)
 
         # score gain
-        # TODO do better
         pacman_pos = team.get_pacman().get_position()
-        min_dist = 100
-        step = 0
-        x, y = pacman_pos
-        if board.get_cell(x, y) == Cell['PAC_DOT']:
-            min_dist = 0
-        else:
-            for d in range(0, 5, 2):
-                for i in range(d):
-                    y -= 1
-                    if board.get_cell(x, y) == Cell['PAC_DOT']:
-                        if (d := astar.distance(pacman_pos, (x, y))) < min_dist:
-                            min_dist = d
-                            step = 0
-                for i in range(d):
-                    x -= 1
-                    if board.get_cell(x, y) == Cell['PAC_DOT']:
-                        if (d := astar.distance(pacman_pos, (x, y))) < min_dist:
-                            min_dist = d
-                            step = 0
-                for i in range(d):
-                    y += 1
-                    if board.get_cell(x, y) == Cell['PAC_DOT']:
-                        if (d := astar.distance(pacman_pos, (x, y))) < min_dist:
-                            min_dist = d
-                            step = 0
-                for i in range(d):
-                    x += 1
-                    if board.get_cell(x, y) == Cell['PAC_DOT']:
-                        if (d := astar.distance(pacman_pos, (x, y))) < min_dist:
-                            min_dist = d
-                            step = 0
-                step += 1
-                if step > 2 or min_dist < 2:
-                    break
-                print(f'step {step}')
-                x += 1
-                y += 1
-        score_gain = -min_dist
+        min_dist_to_score = flood_fill.closest_cell(pacman_pos[0], pacman_pos[1], Cell['PAC_DOT'])
 
-        # explored cell gain
-        exploration_gain = 0
+        # distance to unknown cell
+        min_dist_to_unknown = []
         for id, position in zip(all_ids, positions):
             if id not in team_ids:
                 continue
-
-            # inneficient repeat of agent vision algorithm
-            x, y = position
-            for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
-                distance = 1
-                cur_x = x + dx * distance
-                cur_y = y + dy * distance
-                while (0 <= cur_x < width and 0 <= cur_y < height):
-                    cell = board.get_cell(cur_x, cur_y)
-                    if cell == Cell['UNKNOWN']:
-                        exploration_gain += 1
-                    if cell == Cell['WALL']:
-                        break
-
-                    distance += 1
-                    cur_x = x + dx * distance
-                    cur_y = y + dy * distance
+            min_dist_to_unknown.append(flood_fill.closest_cell(position[0], position[1], Cell['UNKNOWN']))
 
         # team's danger level
         # TODO
@@ -210,4 +163,4 @@ class Utility():
         # other team's agent danger level
         # TODO
 
-        return score_gain + exploration_gain
+        return -min_dist_to_score - sum(min_dist_to_unknown)

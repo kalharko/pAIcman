@@ -1,0 +1,45 @@
+from back.board import Board
+from back.cell import Cell
+
+
+class FloodFill():
+    def __init__(self, board: Board) -> None:
+        assert isinstance(board, Board)
+
+        self.board = board
+
+    def closest_cell(self, og_x: int, og_y: int, searching_for: Cell) -> int:
+        if self.board.get_cell(og_x, og_y) == searching_for:
+            return 0
+
+        unvisited = [(0, og_x, og_y)]  # (distance, x, y)
+        visited = []  # [(x, y)]
+        min_distance_found = 1000
+
+        while unvisited != []:
+            # move node from unvisited to visited
+            distance, x, y = unvisited.pop(0)
+            visited.append((x, y))
+
+            # skip if visiting a node farther from the known best
+            if distance + 1 >= min_distance_found:
+                continue
+
+            # check neighbors
+            for dx, dy in ((-1, 0), (0, -1), (1, 0), (0, -1)):
+                cell = self.board.get_cell(x + dx, y + dy)
+                # continue if already visited
+                if (x + dx, y + dy) in visited:
+                    continue
+                # register and continue if is what we are looking for
+                if cell == searching_for:
+                    if distance + 1 < min_distance_found:
+                        min_distance_found = distance + 1
+                    continue
+                # continue if is a wall
+                if cell in (Cell['WALL'], Cell['DOOR']):
+                    continue
+                # else, add to unvisited
+                unvisited.append((distance + 1, x + dx, y + dy))
+                
+        return min_distance_found
