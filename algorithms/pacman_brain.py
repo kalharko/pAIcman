@@ -19,5 +19,7 @@ class PacmanBrain():
 
         if strategy == Strategy['RANDOM']:
             return Action(id, random.choice(list(Direction)))
-
+        # si la strat = explo , alors a* pour aller au pacdot le plus proche
+        # dans une autre branche
+        # sur le master, une version qui amrche tjrs 
         # TODO
