@@ -5,7 +5,7 @@ package utils {
 class Action{
 +id: str
 +direction: Direction
-+ __init__(self, id: str, direction: Direction) -> None
++ __init__(id: str, direction: Direction) -> None
 }
 Action *-- Direction : direction
 
@@ -34,31 +34,31 @@ class Agent{
 -_last_direction: Direction
 -_score: int
 -_team: int
-+ __init__(self, team: int, id: str, x: int, y: int) -> None
-+ get_position(self) -> tuple[int, int]
-+ get_last_direction(self) -> Direction
-+ get_id(self) -> str
-+ add_score(self, value: int) -> None
-+ get_score(self) -> int
-+ move(self, direction: Direction) -> None
-+ try_move(self, direction: Direction) -> tuple[int, int]
-+ respawn(self)
-+ get_team(self) -> int
-+ get_x(self) -> int
-+ get_y(self) -> int
++ __init__(team: int, id: str, x, y) -> None
++ get_position() -> tuple[int, int]
++ get_last_direction() -> Direction
++ get_id() -> str
++ add_score(value: int) -> None
++ get_score() -> int
++ move(direction: Direction) -> None
++ try_move(direction: Direction) -> tuple[int, int]
++ respawn()
++ get_team() -> int
++ get_x() -> int
++ get_y() -> int
 }
 
 class AgentManager{
 -_teams: list[Team]
-+ __init__(self) -> None
-+ load(self, source: list[str], board_size: tuple[int, int]) -> None
-+ apply(self, action: Action) -> bool
-+ update_perceptions(self, board_manager: BoardManager) -> None
-+ get_agent(self, id: str) -> Agent
-+ get_all_agents(self) -> tuple[Agent]
-+ get_teams(self) -> tuple[Team]
-+ get_ids(self) -> tuple[str]
-+ reset(self) -> None
++ __init__() -> None
++ load(source: list[str], board_size: tuple[int, int]) -> None
++ apply(action: Action) -> bool
++ update_perceptions(board_manager: BoardManager) -> None
++ get_agent(id: str) -> Agent
++ get_all_agents() -> tuple[Agent]
++ get_teams() -> tuple[Team]
++ get_ids() -> tuple[str]
++ reset() -> None
 }
 AgentManager *-- Team : _teams
 
@@ -66,13 +66,13 @@ class Board{
 -_cells: list[list[Cell]]
 -_width: int
 -_height: int
-+ __init__(self) -> None
-+ set_board(self, board: list[list[Cell]]) -> None
-+ set_cell(self, x: int, y: int, value: Cell) -> None
-+ get_cell(self, x: int, y: int) -> Cell
-+ get_all(self) -> list[list[Cell]]
-+ get_size(self) -> tuple[int, int]
-+ __str__(self) -> str
++ __init__() -> None
++ set_board(board: list[list[Cell]]) -> None
++ set_cell(x, y, value: Cell) -> None
++ get_cell(x, y) -> Cell
++ get_all() -> list[list[Cell]]
++ get_size() -> tuple[int, int]
++ __str__() -> str
 }
 Board *-r- Cell : _cells
 
@@ -89,29 +89,29 @@ enum Cell {
 class BoardManager{
 -_board: Board
 -_initial_board: Board
-+ __init__(self) -> None
-+ load(self, source: list[str]) -> None
-+ get_cell(self, position: tuple[int, int]) -> Cell
-+ get_all_cells(self) -> list[list[Cell]]
-+ get_board_size(self) -> tuple[int, int]
-+ set_cell(self, position: tuple[int, int], cell: Cell) -> None
-+ get_collisions(self, agents: tuple[Agent]) -> list[tuple[str, str]]
-+ get_vision(self, agent: Agent, other_team_agents: tuple[Agent]) -> Perception
-+ reset(self) -> None
++ __init__() -> None
++ load(source: list[str]) -> None
++ get_cell(position: tuple[int, int]) -> Cell
++ get_all_cells() -> list[list[Cell]]
++ get_board_size() -> tuple[int, int]
++ set_cell(position: tuple[int, int], cell: Cell) -> None
++ get_collisions(agents: tuple[Agent]) -> list[tuple[str, str]]
++ get_vision(agent: Agent, other_agents: tuple[Agent]) -> Perception
++ reset() -> None
 }
 BoardManager *-- Board : _board
 BoardManager *-- Board : _initial_board
 
 class Ghost{
 -_panic: bool
-+ __init__(self, team: int, id: str, x: int, y: int) -> None
-+ get_panic(self) -> None
-+ set_panic(self, state: bool) -> None
++ __init__(team: int, id: str, x, y) -> None
++ get_panic() -> None
++ set_panic(state: bool) -> None
 }
 Ghost <|-- Agent
 
 class Pacman{
-+ __init__(self, team: int, id: str, x: int, y: int) -> None
++ __init__(team: int, id: str, x, y) -> None
 }
 Pacman <|-- Agent
 
@@ -120,16 +120,16 @@ class PacmanGame{
 -_agent_manager: AgentManager
 -_path_board: str
 -_history: list[list[Action]]
-+ __init__(self) -> None
-+ load_map(self, path: str) -> None
-+ gather_state(self) -> tuple[Team]
-+ gather_cli_state(self) -> tuple[list[list[Cell]], list[Agent]]
-+ step(self, actions: list[Action]) -> None
-+ _can_apply(self, action: Action) -> bool
-+ _apply(self, action) -> None
-+ get_board_size(self) -> tuple[int, int]
-+ reset(self) -> None
-+ get_history(self) -> None
++ __init__() -> None
++ load_map(path: str) -> None
++ gather_state() -> tuple[Team]
++ gather_cli_state() -> tuple[list[list[Cell]], list[Agent]]
++ step(actions: list[Action]) -> None
++ _can_apply(action: Action) -> bool
++ _apply(action) -> None
++ get_board_size() -> tuple[int, int]
++ reset() -> None
++ get_history() -> None
 }
 PacmanGame *-- BoardManager : _board_manager
 PacmanGame *-- AgentManager : _agent_manager
@@ -137,14 +137,14 @@ PacmanGame *-- AgentManager : _agent_manager
 class Perception{
 -_board: Board
 -_last_seen: dict[str: list[int, int, int]]  # time, x, y
-+ __init__(self, board_size: tuple[int, int]) -> None
-+ set_board(self, board: Board) -> None
-+ step_time(self) -> None
-+ update(self, other: 'Perception') -> None
-+ get_board(self) -> Board
-+ get_last_seen(self) -> dict
-+ update_agent_seen(self, agent_id, position) -> None
-+ __str__(self) -> str
++ __init__(board_size: tuple[int, int]) -> None
++ set_board(board: Board) -> None
++ step_time() -> None
++ update(other: 'Perception') -> None
++ get_board() -> Board
++ get_last_seen() -> dict
++ update_agent_seen(agent_id, position) -> None
++ __str__() -> str
 }
 Perception *-- Board : _board
 
@@ -153,18 +153,18 @@ class Team{
 -_ghosts: list[Ghost]
 -_perception: Perception
 -_score: int
-+ __init__(self, board_size: tuple[int, int]) -> None
-+ set_pacman(self, value: Pacman) -> None
-+ add_ghost(self, value: Ghost) -> None
-+ get_agents(self) -> tuple[Agent]
-+ get_agent(self, id: str) -> Agent
-+ get_pacman(self) -> Pacman
-+ get_ghosts(self) -> tuple[Ghost]
-+ get_ids(self) -> tuple[str]
-+ get_perception(self) -> Perception
-+ get_score(self) -> int
-+ update_perception(self, board_manager: BoardManager, other_team: 'Team') -> None
-+ reset(self) -> None
++ __init__(board_size: tuple[int, int]) -> None
++ set_pacman(value: Pacman) -> None
++ add_ghost(value: Ghost) -> None
++ get_agents() -> tuple[Agent]
++ get_agent(id: str) -> Agent
++ get_pacman() -> Pacman
++ get_ghosts() -> tuple[Ghost]
++ get_ids() -> tuple[str]
++ get_perception() -> Perception
++ get_score() -> int
++ update_perception(board_manager: BoardManager, other_team: 'Team') -> None
++ reset() -> None
 }
 Team *-- Pacman : _pacman
 Team *-- Ghost : _ghosts
@@ -173,15 +173,15 @@ Team *-- Perception : _perception
 }
 package algorithms {
 class AStar{
-+ __init__(self, game_map, start_cell, goal_cell)
-+ cost(self)
-+ manhattan(self, current_cell)
-+ euclidean(self, current_cell)
++ __init__(game_map, start_cell, goal_cell)
++ cost()
++ manhattan(current_cell)
++ euclidean(current_cell)
 }
 
 class GhostBrain{
-+ __init__(self)
-+ compute_action(self, strategy: Strategy, perception: Perception, id: str) -> Action
++ __init__()
++ compute_action(strat: Strategy, team: Team, id: str) -> Action
 }
 GhostBrain <|-- Brain
 GhostBrain *-- AStar
@@ -189,12 +189,12 @@ GhostBrain *-- HunterPrey
 GhostBrain *-- QIteration
 
 class HunterPrey{
-+ __init__(self)
++ __init__()
 }
 
 class PacmanBrain{
-+ __init__(self)
-+ compute_action(self, strategy: Strategy, perception: Perception, id: str) -> Action
++ __init__()
++ compute_action(strat: Strategy, team: Team, id: str) -> Action
 }
 PacmanBrain <|-- Brain
 PacmanBrain *-- AStar
@@ -202,7 +202,17 @@ PacmanBrain *-- HunterPrey
 PacmanBrain *-- QIteration
 
 class QIteration{
-+ __init__(self)
++ __init__()
+}
+
+class Utility{
+
+}
+Utility *-- FloodFill
+Utility *-- AStar
+class FloodFill{
+- _board: Board
++ distance_to_closest_cell(x, y, search: Cell)
 }
 
 }
@@ -212,11 +222,11 @@ class CliReplay{
 -_history: list[list[Action]]
 -_fancy_walls: list[list[str]]
 -_step_count: int
-+ __init__(self, environment: PacmanGame) -> None
-+ _start(self, stdscr) -> None
-+ main_loop(self) -> None
-+ display(self) -> None
-+ _load_fancy_walls(self) -> list[list[str]]
++ __init__(environment: PacmanGame) -> None
++ _start(stdscr) -> None
++ main_loop() -> None
++ display() -> None
++ _load_fancy_walls() -> list[list[str]]
 }
 
 }
@@ -227,16 +237,18 @@ class Main{
 +brain_pacman: PacmanBrain
 +brain_ghost: GhostBrain
 +environment: PacmanGame
-+ __init__(self) -> None
-+ simulation_cycle(self) -> None
++ __init__() -> None
++ simulation_cycle() -> None
 }
 Main *-- PacmanBrain : brain_pacman
 Main *-- GhostBrain : brain_ghost
+Main *-- Utility : utility
 Main *-l- PacmanGame : environment
 Main o-r- CliReplay : replay
 
 ' invisible organisational links
 Action -u[hidden]- AStar
 BoardManager -r[hidden]- Team
+Utility -r[hidden]- GhostBrain
 
 @enduml
