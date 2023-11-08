@@ -10,6 +10,10 @@ class Agent():
     _last_direction: Direction
     _score: int
     _team: int
+    # Is the agent alive
+    _alive: bool
+    # Number of steps before the agent respawns
+    _respawn_time: int
 
     def __init__(self, team: int, id: str, x: int, y: int) -> None:
         assert isinstance(team, int)
@@ -26,6 +30,8 @@ class Agent():
         self._last_direction = Direction['UP']
         self._score = 0
         self._team = team
+        self._alive = true
+        self._respawn_time = 4
 
     def get_position(self) -> tuple[int, int]:
         return (self._x, self._y)
