@@ -1,4 +1,4 @@
-from utils.cell import Cell
+from back.cell import Cell
 
 
 class Board():
