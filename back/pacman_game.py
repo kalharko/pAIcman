@@ -69,7 +69,9 @@ class PacmanGame():
                 if self._can_apply(last_action):
                     self._apply(last_action)
                 else:
-                    continue  # correct behavior ?
+                    continue  # TODO: Change behavior be cause redo the previous can cause issues
+
+        # TODO: check agent collisions
 
         # update team's perception
         self._agent_manager.update_perceptions(self._board_manager)
@@ -91,7 +93,7 @@ class PacmanGame():
                         agent.add_score(5)
                         self._board_manager.set_cell(agent.get_position(), Cell['EMPTY'])
                     elif col[1] == Cell['PAC_GUM']:
-                        continue  # TODO
+                        continue  # TODO: Pac Gum behavior
 
             # collision with agent
             else:
