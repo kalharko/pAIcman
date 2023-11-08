@@ -161,3 +161,6 @@ cython_debug/
 
 # Compilation png de plantuml
 out/
+
+# Generated files
+Documentation/class_full_auto.puml

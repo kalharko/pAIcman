@@ -1,14 +1,12 @@
 import random
-from algorithms.a_star import AStar
-from algorithms.perception import Perception
-from algorithms.q_iteration import QIteration
-from algorithms.hunter_prey import HunterPrey
+from algorithms.brain import Brain
+from back.perception import Perception
 from utils.direction import Direction
 from utils.strategy import Strategy
 from utils.action import Action
 
 
-class GhostBrain():
+class GhostBrain(Brain):
     def __init__(self):
         pass
 

@@ -1,14 +1,12 @@
 import random
-from algorithms.a_star import AStar
-from algorithms.perception import Perception
-from algorithms.q_iteration import QIteration
-from algorithms.hunter_prey import HunterPrey
+from algorithms.brain import Brain
+from back.perception import Perception
 from utils.action import Action
 from utils.direction import Direction
 from utils.strategy import Strategy
 
 
-class PacmanBrain():
+class PacmanBrain(Brain):
     def __init__(self):
         pass
 
@@ -19,5 +17,7 @@ class PacmanBrain():
 
         if strategy == Strategy['RANDOM']:
             return Action(id, random.choice(list(Direction)))
-
+        # si la strat = explo , alors a* pour aller au pacdot le plus proche
+        # dans une autre branche
+        # sur le master, une version qui amrche tjrs 
         # TODO

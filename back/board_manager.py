@@ -1,10 +1,13 @@
-from utils.cell import Cell
-from utils.board import Board
+import copy
+from back.perception import Perception
+from back.cell import Cell
+from back.board import Board
 from back.agent import Agent
 
 
 class BoardManager():
     _board: Board
+    _initial_board: Board
 
     def __init__(self) -> None:
         self._board = Board()
@@ -33,6 +36,7 @@ class BoardManager():
                 x += 1
             y += 1
         self._board.set_board(cells)
+        self._initial_board = copy.deepcopy(self._board)
 
     def get_cell(self, position: tuple[int, int]) -> Cell:
         assert isinstance(position, tuple)
@@ -57,8 +61,8 @@ class BoardManager():
 
         self._board.set_cell(position[0], position[1], cell)
 
-    def get_collisions(self, agents: list[Agent]) -> list[tuple[str, str]]:
-        assert isinstance(agents, list)
+    def get_collisions(self, agents: tuple[Agent]) -> list[tuple[str, str]]:
+        assert isinstance(agents, tuple)
         assert len(agents) > 0
         assert isinstance(agents[0], Agent)
 
@@ -81,42 +85,45 @@ class BoardManager():
                     out.append((agent.get_id(), col))
         return out
 
-    def get_vision(self, agent: Agent, agents: list[Agent]) -> tuple[Board, tuple[tuple[str, int, int]]]:
+    def get_vision(self, agent: Agent, other_team_agents: tuple[Agent]) -> Perception:
         assert isinstance(agent, Agent)
-        assert isinstance(agents, list)
-        assert len(agents) > 0
-        assert isinstance(agents[0], Agent)
+        assert isinstance(other_team_agents, tuple)
+        assert len(other_team_agents) > 0
+        assert isinstance(other_team_agents[0], Agent)
+
+        out = Perception(self._board.get_size())
+        board = out.get_board()
 
         # board vision
-        width, height = self._board.get_size()
-        board = Board()
-        board.set_board(
-            [[Cell['UNKNOWN'] for y in range(height)] for x in range(width)]
-            )
+        width, height = board.get_size()
         x, y = agent.get_position()
         self._board.set_cell(x, y, self._board.get_cell(x, y))
         for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
-            distance = 1
+            distance = 0
             cur_x = x + dx * distance
             cur_y = y + dy * distance
-            while (0 <= cur_x < width and
-                  0 <= cur_y < height and
-                  self._board.get_cell(cur_x, cur_y) != Cell['WALL']):
+            while (0 <= cur_x < width and 0 <= cur_y < height):
                 board.set_cell(cur_x, cur_y, self._board.get_cell(cur_x, cur_y))
                 board.set_cell(cur_x + dy, cur_y + dx, self._board.get_cell(cur_x + dy, cur_y + dx))
                 board.set_cell(cur_x - dy, cur_y - dx, self._board.get_cell(cur_x - dy, cur_y - dx))
 
+                if self._board.get_cell(cur_x, cur_y) == Cell['WALL']:
+                    break
+
                 distance += 1
-                cur_x = dx * distance
-                cur_y = dy * distance
+                cur_x = x + dx * distance
+                cur_y = y + dy * distance
 
         # vision of other agents
-        agents_seen = [(agent.get_id(), agent.get_x(), agent.get_y())]
-        for a in agents:
+        out.update_agent_seen(agent.get_id(), agent.get_position())
+        for a in other_team_agents:
             if a == agent:
                 continue
             x, y = a.get_position()
             if board.get_cell(x, y) != Cell['UNKNOWN']:
-                agents_seen.append((a.get_id(), x, y))
+                out.update_agent_seen(a.get_id(), (x, y))
 
-        return (board, tuple(agents_seen))
+        return out
+
+    def reset(self) -> None:
+        self._board = copy.deepcopy(self._initial_board)
