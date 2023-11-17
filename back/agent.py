@@ -28,23 +28,53 @@ class Agent():
         self._team = team
 
     def get_position(self) -> tuple[int, int]:
+        """Get agent's position
+
+        :return: agent's position (x, y)
+        :rtype: tuple[int, int]
+        """
         return (self._x, self._y)
 
     def get_last_direction(self) -> Direction:
+        """Get agent's last applied direction
+
+        :return: direction enum
+        :rtype: Direction
+        """
         return self._last_direction
 
     def get_id(self) -> str:
+        """Get agent's id
+
+        :return: agent's id
+        :rtype: str
+        """
         return self._id
 
     def add_score(self, value: int) -> None:
+        """Increment agent's score
+
+        :param value: value to add to the agent's score
+        :type value: int
+        """
         assert isinstance(value, int)
 
         self._score += value
 
     def get_score(self) -> int:
+        """Get agent's score
+
+        :return: agent's score
+        :rtype: int
+        """
         return self._score
 
     def move(self, direction: Direction) -> None:
+        """Move the agent in the given direction for a distance of 1
+
+        :param direction: direction enum in wich to move the agent
+        :type direction: Direction
+        """
         assert isinstance(direction, Direction)
 
         if direction == Direction['UP']:
@@ -62,6 +92,13 @@ class Agent():
         self._last_direction = direction
 
     def try_move(self, direction: Direction) -> tuple[int, int]:
+        """Return's the position the agent would in if it moved in the given direction
+
+        :param direction: direction to fake move the agent in
+        :type direction: Direction
+        :return: the position the agent would be in if the direction was applied (x, y)
+        :rtype: tuple[int, int]
+        """
         assert isinstance(direction, Direction)
 
         if direction == Direction['UP']:
