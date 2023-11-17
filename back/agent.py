@@ -2,6 +2,8 @@ from utils.direction import Direction
 
 
 class Agent():
+    """Class describing an agent's state
+    """
     _id: str
     _x: int
     _y: int
@@ -12,6 +14,17 @@ class Agent():
     _team: int
 
     def __init__(self, team: int, id: str, x: int, y: int) -> None:
+        """Agent's initialization
+
+        :param team: agent's team id
+        :type team: int
+        :param id: agent's id
+        :type id: str
+        :param x: agent's initial x position
+        :type x: int
+        :param y: agent's initial y position
+        :type y: int
+        """
         assert isinstance(team, int)
         assert team in (0, 1)
         assert isinstance(id, str)
@@ -113,16 +126,33 @@ class Agent():
         return (self._x + x, self._y + y)
 
     def respawn(self):
+        """Sets the agent's position to it's original position
+        """
         self._x = self._start_x
         self._y = self._start_y
 
     def get_team(self) -> int:
+        """Get the agent's team id
+
+        :return: the agent's team id
+        :rtype: int
+        """
         return self._team
 
     def get_x(self) -> int:
+        """Get agent's x position
+
+        :return: agent's x position
+        :rtype: int
+        """
         return self._x
 
     def get_y(self) -> int:
+        """Get agent's y position
+
+        :return: agent's y position
+        :rtype: int
+        """
         return self._y
 
     def __str__(self) -> str:
