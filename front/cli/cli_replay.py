@@ -7,6 +7,7 @@ from back.cell import Cell
 from back.pacman_game import PacmanGame
 from utils.action import Action
 from back.pacman import Pacman
+from utils.direction import Direction
 
 
 class CliReplay():
@@ -88,7 +89,10 @@ class CliReplay():
         cells, agents = self._game.gather_cli_state()
         char_cell = [' ', '#', '_', '·', 'Ø']
         color_cell = [0, 1, 3, 3, 3]
-        char_pacman = ['ᗢ', 'ᗧ', 'ᗣ', 'ᗤ']
+        char_pacman = {Direction['UP']: 'ᗢ',
+                       Direction['RIGHT']: 'ᗧ',
+                       Direction['DOWN']: 'ᗣ',
+                       Direction['LEFT']: 'ᗤ'}
         char_ghost = 'ᗝ'
         color_ghost = [4, 5, 6]
 
@@ -110,7 +114,7 @@ class CliReplay():
             if isinstance(agent, Pacman):
                 self._screen.addstr(y + 1,
                                     x + 1,
-                                    char_pacman[agent.get_last_direction().value],
+                                    char_pacman[agent.get_last_direction()],
                                     curses.color_pair(2))
             else:
                 self._screen.addstr(y + 1,
