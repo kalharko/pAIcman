@@ -87,3 +87,6 @@ class Agent():
 
     def get_y(self) -> int:
         return self._y
+
+    def __str__(self) -> str:
+        return f'{self._id} : {self.get_position()}'

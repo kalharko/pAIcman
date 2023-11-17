@@ -68,3 +68,9 @@ class Team():
         for agent in self.get_agents():
             agent.respawn()
         self._score = 0
+
+    def __str__(self) -> str:
+        out = 'Team\n'
+        out += str(list(self.get_ids())) + '\n'
+        out += str(self._perception) + '\n'
+        return out
