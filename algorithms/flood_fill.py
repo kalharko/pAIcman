@@ -44,4 +44,7 @@ class FloodFill():
                     print(searching_for)
                     exit()
 
+        if min_distance_found == 1000:
+            print(self.board)
+            print(og_x, og_y, searching_for.name)
         return min_distance_found

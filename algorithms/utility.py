@@ -109,7 +109,7 @@ class Utility():
                 for og_positions, probability in states:
                     positions = copy.deepcopy(og_positions)
                     positions[positions.index(None)] = action
-                    eu += self.utility(positions, team) * probability
+                    eu += self.utility(positions, all_ids, team) * probability
                 expected_utilities.append(eu)
 
             # choose max expected utility
@@ -131,7 +131,7 @@ class Utility():
                 new_out.append(Action(id, directions[deltas.index(dpos)]))
         return new_out
 
-    def utility(self, positions, team: Team) -> float:
+    def utility(self, positions, all_ids, team: Team) -> float:
         # simple combination of the following metrics :
         # - distance to score gain
         # - distance to explored cell gain
@@ -142,12 +142,11 @@ class Utility():
         board = team.get_perception().get_board()
         width, height = board.get_size()
         team_ids = list(team.get_ids())
-        all_ids = list(team.get_perception().get_agents_seen().keys())
         flood_fill = FloodFill(board)
         astar = AStar(board)
 
         # distance to score gain
-        pacman_pos = team.get_pacman().get_position()
+        pacman_pos = positions[all_ids.index(team.get_pacman().get_id())]
         min_dist_to_score = flood_fill.closest_cell(pacman_pos[0], pacman_pos[1], Cell['PAC_DOT'])
 
         # distance to unknown cell
@@ -163,4 +162,4 @@ class Utility():
         # other team's agent danger level
         # TODO
 
-        return 1 / (1 + min_dist_to_score) + 1 / sum(min_dist_to_unknown)
+        return 1 / (1 + min_dist_to_score) + len(min_dist_to_unknown) / sum(min_dist_to_unknown)
