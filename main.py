@@ -5,6 +5,7 @@ from algorithms.pacman_brain import PacmanBrain
 from algorithms.ghost_brain import GhostBrain
 from utils.strategy import Strategy
 from front.cli.cli_replay import CliReplay
+from argparse import ArgumentParser
 
 
 class Main():
@@ -68,6 +69,19 @@ class Main():
 
 
 if __name__ == '__main__':
+    parser = ArgumentParser(
+                    prog='ProgramName',
+                    description='What the program does',
+                    epilog='Text at the bottom of help')
+    parser.add_argument('map_path',
+                        help='path to the map to use',
+                        default='maps/original.txt')
+    parser.add_argument('decision_system',
+                        help='which decision system to use, default is utility vs triangle, 1 is utility vs utility and 2 is triangle vs triangle.',
+                        default=0,
+                        type=int)
+
+
     main = Main()
     # main.simulation_cycle()
     for i in range(100):
