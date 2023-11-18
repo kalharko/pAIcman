@@ -20,10 +20,6 @@ class Utility():
     def run(self, team: Team) -> list[Action]:
         assert isinstance(team, Team)
 
-        print()
-        print('Start of Utility.run()')
-        print(team)
-
         # important data
         possible_positions = {}  # contains agent_id: [(x, y), (x,y), ...]
         # used data
@@ -76,10 +72,6 @@ class Utility():
                         positions.append((og_x + dx, og_y + dy))
             possible_positions[agent_id] = positions
 
-        print('possible positions')
-        for key, value in possible_positions.items():
-            print(key, value)
-
         # chose action
         out = []
         for decisional_agent in team.get_agents():
@@ -112,7 +104,6 @@ class Utility():
                 expected_utilities.append(eu)
 
             # choose max expected utility
-            print(decisional_agent_id, expected_utilities)
             chosen_action = possible_positions[decisional_agent_id][expected_utilities.index(max(expected_utilities))]
             out.append((decisional_agent_id, chosen_action))
             possible_positions[decisional_agent_id] = [chosen_action]
