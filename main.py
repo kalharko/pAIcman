@@ -104,6 +104,6 @@ if __name__ == '__main__':
     print(f'Playing on map {args.map_path}, with team1 using {args.team1_decision_algo} and team2 using {args.team2_decision_algo}')
     for i in range(100):
         main.cycle()
-        if input() == 'q':
+        if input(f'Cycle : {i},\t\tq to stop') == 'q':
             break
     replay = CliReplay(main.environment)
