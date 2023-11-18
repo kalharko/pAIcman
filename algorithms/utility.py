@@ -1,7 +1,6 @@
 
 
 import copy
-import random
 from algorithms.flood_fill import FloodFill
 from back.team import Team
 from utils.action import Action
@@ -143,7 +142,6 @@ class Utility():
         width, height = board.get_size()
         team_ids = list(team.get_ids())
         flood_fill = FloodFill(board)
-        astar = AStar(board)
 
         # distance to score gain
         pacman_pos = positions[all_ids.index(team.get_pacman().get_id())]
