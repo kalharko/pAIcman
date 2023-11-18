@@ -160,7 +160,7 @@ class BoardManager():
                 cur_y = y + dy * distance
 
         # vision of other agents
-        out.update_agent_seen(agent.get_id(), agent.get_position())
+        out.update_sightings(agent.get_id(), agent.get_position())
         for a in other_team_agents:
             if a == agent:
                 continue

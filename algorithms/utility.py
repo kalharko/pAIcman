@@ -30,7 +30,7 @@ class Utility():
         # used data
         board = team.get_perception().get_board()
         board_width, board_height = board.get_size()
-        last_seen = team.get_perception().get_agents_seen()
+        last_seen = team.get_perception().get_sightings()
         team_ids = list(team.get_ids())
         all_ids = list(last_seen.keys())
         other_ids = copy.copy(all_ids)

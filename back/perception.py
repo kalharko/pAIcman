@@ -65,7 +65,7 @@ class Perception():
                     self._last_cell_seen.append((x, y))
                 self._board.set_cell(x, y, other_board.get_cell(x, y))
         # update agents seen
-        for id, value in other.get_agents_seen().items():
+        for id, value in other.get_sightings().items():
             if value[0] == 0:
                 self._agents_seen[id] = list(value)
 
