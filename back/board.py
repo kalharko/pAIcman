@@ -1,4 +1,5 @@
 from back.cell import Cell
+from utils.direction import Direction
 
 
 class Board():
@@ -84,6 +85,27 @@ class Board():
             out.append(self._cells[x + dx][y + dy])
         return out
 
+    def get_next_cell(self,x, y, direction: Direction) -> Cell:
+        """Get the next after moving in a certain direction
+
+        :param x: x position of the cell whose neighbors we want
+        :type x: int
+        :param y: y position of the cell whose neighbors we want
+        :type y: int
+        :param direction : the direction where we move
+        :type direction : Direction
+
+        :return : the cell where we arrive after moving in the direction
+        :rtype : Cell
+        """
+        assert isinstance(x, int)
+        assert isinstance(y, int)
+        assert 0 <= x < self._width
+        assert 0 <= y < self._height
+        (dx, dy) = direction
+        return self._cells[x + dx][y + dy]
+
+
 
     def get_all(self) -> list[list[Cell]]:
         """Get the full description of the board
@@ -100,6 +122,24 @@ class Board():
         :rtype: tuple[int, int]
         """
         return (self._width, self._height)
+
+    def get_legal_move(self, x : int, y : int) -> list[Direction]:
+        """
+        Get all the move that the agent is able to do in a given position (x, y)
+
+        :param x: x position of the cell we are
+        :type x: int
+        :param y: y position of the cell we are
+        :type y: int
+        :return: list of the direction we can move
+        :rtype: list[Direction]
+        """
+
+        legal_move = []
+        for direction in Direction:
+            if self.get_next_cell(x, y, direction).is_movable():
+                legal_move.append(direction)
+        return legal_move
 
     def __str__(self) -> str:
         translation = {

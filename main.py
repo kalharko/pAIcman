@@ -38,7 +38,7 @@ class Main():
 
         # brains
         self.brain_ghost = GhostBrain()
-        self.brain_pacman = PacmanBrain()
+        self.brain_pacman = PacmanBrain(self.environment.get_agent_manager())
 
         # other
         self.utility = Utility()
@@ -65,8 +65,8 @@ class Main():
             actions = self.utility.run(team_a)
             actions += self.utility.run(team_b)
         else:  # strategy triangle vs strategy triangle
-            strat_team_a = ((agent, Strategy['RANDOM']) for agent in team_a.get_agents())
-            strat_team_b = ((agent, Strategy['RANDOM']) for agent in team_b.get_agents())
+            strat_team_a = ((agent, Strategy['EXPLORATION']) for agent in team_a.get_agents())
+            strat_team_b = ((agent, Strategy['EXPLORATION']) for agent in team_b.get_agents())
             for agent, strat in strat_team_a:
                 if isinstance(agent, Pacman):
                     actions.append(self.brain_pacman.compute_action(strat, team_a.get_perception(), agent.get_id()))

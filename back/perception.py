@@ -95,6 +95,7 @@ class Perception():
         """
         self._agents_seen[agent_id] = (0, position)
 
+
     def __str__(self) -> str:
         out = str(self._board)
         width, height = self._board.get_size()
