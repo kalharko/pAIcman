@@ -107,3 +107,19 @@ class Perception():
             x, y = pos
             out = out[:(width + 1) * y + x] + id[0] + out[(width + 1) * y + x + 1:]
         return out + str(self._agents_seen) + '\n'
+
+    def is_visible(self, position : (int, int), agent_id : str) -> bool:
+        """
+        check if the cell position is visible or not in the perception of the agent agent_id
+
+        :param position: the position of the cell that we want to check
+        :type (int, int)
+        :param agent_id: the agent perception we want to check
+        :type str
+        :return: return true if the cell is visible and false instead
+        :rtype bool
+        """
+
+        #TODO: implement the fonction
+
+        return True
