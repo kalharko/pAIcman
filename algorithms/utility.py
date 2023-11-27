@@ -25,9 +25,10 @@ class Utility():
         # used data
         board = team.get_perception().get_board()
         board_width, board_height = board.get_size()
-        last_seen = team.get_perception().get_sightings()
+        last_pacman_seen = team.get_perception().get_pacman_sightings()
+        last_ghost_seen = team.get_perception().get_ghost_sightings()
         team_ids = list(team.get_ids())
-        all_ids = list(last_seen.keys())
+        all_ids = list(last_pacman_seen.keys()) + list(last_ghost_seen.keys())
         other_ids = copy.copy(all_ids)
         for id in team_ids:
             other_ids.remove(id)
@@ -133,6 +134,7 @@ class Utility():
         width, height = board.get_size()
         team_ids = list(team.get_ids())
         flood_fill = FloodFill(board)
+        a_star = AStar(board)
 
         # distance to score gain
         pacman_pos = positions[all_ids.index(team.get_pacman().get_id())]

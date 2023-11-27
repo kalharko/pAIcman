@@ -166,7 +166,7 @@ class BoardManager():
                 continue
             x, y = a.get_position()
             if board.get_cell(x, y) != Cell['UNKNOWN']:
-                out.update_sightings(a.get_id(), (x, y))
+                out.update_sightings(a)
 
         return out
 

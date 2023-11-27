@@ -1,13 +1,17 @@
+from back.agent import Agent
 from back.board import Board
 from back.cell import Cell
 from copy import deepcopy
+
+from back.pacman import Pacman
 
 
 class Perception():
     """Class describing a perception of the pacman game (agent or team)
     """
     _board: Board
-    _sightings: dict[str: list[int, int, int]]  # time, x, y
+    _pacman_sightings: dict[str: tuple[int, int, int]]  # id: time, x, y
+    _ghost_sightings: dict[str: tuple[int, int, int]]  # id: time, x, y
     _last_cell_seen: list[tuple[int, int]]  # x, y
 
     def __init__(self, board_size: tuple[int, int]) -> None:
@@ -64,10 +68,14 @@ class Perception():
                 if (x, y) not in self._last_cell_seen:
                     self._last_cell_seen.append((x, y))
                 self._board.set_cell(x, y, other_board.get_cell(x, y))
-        # update agents seen
-        for id, value in other.get_sightings().items():
+        # update Pacman seen
+        for id, value in other.get_pacman_sightings().items():
             if value[0] == 0:
-                self._agents_seen[id] = list(value)
+                self._pacman_sightings[id] = value
+        # update Ghosts seen
+        for id, value in other.get_ghost_sightings().items():
+            if value[0] == 0:
+                self._ghost_sightings[id] = value
 
     def get_board(self) -> Board:
         """Get the perception's board
@@ -77,23 +85,33 @@ class Perception():
         """
         return self._board
 
-    def get_sightings(self) -> dict:
+    def get_pacman_sightings(self) -> dict:
         """Get the perception's sightings
 
         :return: A dict {agent_id: (time, x, y)} storing the time and position of last sighting
         :rtype: dict
         """
-        return self._agents_seen
+        return self._pacman_sightings
 
-    def update_sightings(self, agent_id, position) -> None:
+    def get_ghost_sightings(self) -> dict:
+        """Get the perception's sightings
+
+        :return: A dict {agent_id: (time, x, y)} storing the time and position of last sighting
+        :rtype: dict
+        """
+        return self._ghost_sightings
+
+    def update_sightings(self, agent: Agent) -> None:
         """Update the sighting informations of a given agent
 
-        :param agent_id: id of the agent to update
-        :type agent_id: _type_
-        :param position: position of the agent to update
-        :type position: _type_
+        :param agent: agent to add to the sightings
+        :type agent: Agent
         """
-        self._agents_seen[agent_id] = (0, position)
+        pos = agent.get_position()
+        if isinstance(agent, Pacman):
+            self._pacman_sightings[agent.get_id()] = (0, pos[0], pos[1])
+        else:
+            self._ghost_sightings[agent.get_id()] = (0, pos[0], pos[1])
 
     def __str__(self) -> str:
         out = str(self._board)
