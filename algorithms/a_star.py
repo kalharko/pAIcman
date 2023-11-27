@@ -1,6 +1,7 @@
 from astar.search import AStar as ImportedAStar
 from back.board import Board
 from back.cell import Cell
+from utils.direction import Direction
 import copy
 
 
@@ -23,5 +24,13 @@ class AStar():
             return 100
         return len(path)
 
-    def path(self, start: tuple[int], goal: tuple[int]) -> int:
+    def path(self, start: tuple[int], goal: tuple[int]) -> list[tuple[int]]:
         return self.astar.search(start, goal)
+    
+    def first_step_of_path(self, start: tuple[int], goal: tuple[int]) -> Direction :
+        first_movement = self.path(start,goal)[0]
+        # diff premier mouvement moins le start pour avoir la direction 
+        first_direction = (first_movement[0] - start[0], first_movement[1] - start[1]) #tuple 
+        return Direction[first_direction]
+
+
