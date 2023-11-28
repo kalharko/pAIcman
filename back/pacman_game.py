@@ -109,8 +109,6 @@ class PacmanGame():
                 if isinstance(agent, Pacman):
                     if col[1] == Cell['WALL']:
                         return PacErrAgentInWall(col)
-                    elif col[1] == Cell['DOOR']:
-                        return PacErrAgentInWall(col)
                     elif col[1] == Cell['PAC_DOT']:
                         agent.add_score(5)
                         self._board_manager.set_cell(agent.get_position(), Cell['EMPTY'])
@@ -135,7 +133,7 @@ class PacmanGame():
         cell = self._board_manager.get_cell(agent.try_move(action.direction))
 
         if isinstance(agent, Pacman):
-            if cell not in (Cell['WALL'], Cell['DOOR']):
+            if cell != Cell['WALL']:
                 return True
         else:
             if cell != Cell['WALL']:

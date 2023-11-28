@@ -84,7 +84,6 @@ class Board():
             out.append(self._cells[x + dx][y + dy])
         return out
 
-
     def get_all(self) -> list[list[Cell]]:
         """Get the full description of the board
 
