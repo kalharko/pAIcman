@@ -135,7 +135,7 @@ class PacmanGame():
         cell = self._board_manager.get_cell(agent.try_move(action.direction))
 
         if isinstance(agent, Pacman):
-            if cell not in (Cell['WALL'], Cell['DOOR']):
+            if cell != Cell['WALL']:
                 return True
         else:
             if cell != Cell['WALL']:

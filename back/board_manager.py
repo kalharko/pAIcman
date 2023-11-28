@@ -27,7 +27,6 @@ class BoardManager():
         translation = {
             ' ': Cell['EMPTY'],
             '#': Cell['WALL'],
-            'D': Cell['DOOR'],
             '.': Cell['PAC_DOT'],
             'O': Cell['PAC_GUM'],
             'P': Cell['WALL']
