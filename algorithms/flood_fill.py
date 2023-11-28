@@ -9,7 +9,7 @@ class FloodFill():
         self.board = board
 
     def closest_cell(self, og_x: int, og_y: int, searching_for: Cell) -> int:
-        if self.board.get_cell(og_x, og_y) == searching_for:
+        if self.board.get_cell((og_x, og_y)) == searching_for:
             return 0
 
         unvisited = [(0, og_x, og_y)]  # (distance, x, y)
@@ -26,7 +26,7 @@ class FloodFill():
                 # continue if already visited
                 if (x + dx, y + dy) in visited:
                     continue
-                cell = self.board.get_cell(x + dx, y + dy)
+                cell = self.board.get_cell((x + dx, y + dy))
                 # register and continue if is what we are looking for
                 if cell == searching_for:
                     if distance + 1 < min_distance_found:

@@ -38,7 +38,7 @@ class Utility():
             positions = []
             for direction in self.directions:
                 new_pos = agent.try_move(direction)
-                if board.get_cell(new_pos[0], new_pos[1]) in (Cell['WALL'], Cell['DOOR']):
+                if board.get_cell(new_pos) in (Cell['WALL'], Cell['DOOR']):
                     continue
                 positions.append(copy.copy(new_pos))
             possible_positions[agent.get_id()] = copy.deepcopy(positions)
@@ -62,7 +62,7 @@ class Utility():
                     if not (0 <= x < board_width and 0 <= y < board_height):
                         continue
                     # quit if is an illegal position
-                    if board.get_cell(x, y) in (Cell['WALL'], Cell['DOOR']):
+                    if board.get_cell((x, y)) in (Cell['WALL'], Cell['DOOR']):
                         continue
                     # second, more precise check of distance
                     if astar.distance((x, y), (og_x, og_y)) > how_long_ago:

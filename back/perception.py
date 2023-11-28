@@ -59,11 +59,11 @@ class Perception():
         other_board = other.get_board()
         for x in range(width):
             for y in range(height):
-                if other_board.get_cell(x, y) == Cell['UNKNOWN']:
+                if other_board.get_cell((x, y)) == Cell['UNKNOWN']:
                     continue
                 if (x, y) not in self._last_cell_seen:
                     self._last_cell_seen.append((x, y))
-                self._board.set_cell(x, y, other_board.get_cell(x, y))
+                self._board.set_cell((x, y), other_board.get_cell((x, y)))
         # update agents seen
         for id, value in other.get_sightings().items():
             if value[0] == 0:
@@ -115,7 +115,7 @@ class Perception():
         :param position: the position of the cell that we want to check
         :type (int, int)
         :param agent_id: the agent perception we want to check
-        :type str
+        :type agent_id : str
         :return: return true if the cell is visible and false instead
         :rtype bool
         """

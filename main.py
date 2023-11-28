@@ -29,6 +29,7 @@ class Main():
         :type team2_decision_algo: str
         """
         self.scenario = 0 if team1_decision_algo != team2_decision_algo else 2
+        self.scenario =3
         if self.scenario != 0:
             self.scenario = 1 if team1_decision_algo == 'utility' else 2
 
