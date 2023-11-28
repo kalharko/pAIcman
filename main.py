@@ -38,7 +38,7 @@ class Main():
         self.environment.load_map(map_path)
 
         # brains
-        self.brain_ghost = GhostBrain()
+        self.brain_ghost = GhostBrain(self.environment.get_agent_manager())
         self.brain_pacman = PacmanBrain(self.environment.get_agent_manager())
 
         # other
