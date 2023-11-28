@@ -1,23 +1,34 @@
+from astar.search import AStar as ImportedAStar
+from back.board import Board
+from back.cell import Cell
+from utils.direction import Direction
+import copy
+
+
 class AStar():
-    def __init__(self, game_map, start_cell, goal_cell):
-        self.game_map = game_map
-        self.start_cell = start_cell
-        self.goal_cell = goal_cell
+    def __init__(self, board: Board):
+        assert isinstance(board, Board)
 
-    # f(n) = g(n) + h(n)
-    # g(n) is the cost of the path from the start cell to the cell n
-    # h(n) is a heuristic function that estimates the cost of the cheapest path from n to the goal cell
+        self.cells = copy.deepcopy(board.get_all())
+        width, height = board.get_size()
+        for x in range(width):
+            for y in range(height):
+                if self.cells[x][y] == Cell['WALL']:
+                    self.cells[x][y] = 1
+                else:
+                    self.cells[x][y] = 0
+        self.astar = ImportedAStar(self.cells)
 
-    # define the cost of an action
-    def cost(self):
-        pass
+    def distance(self, start: tuple[int], goal: tuple[int]) -> int:
+        if (path := self.astar.search(start, goal)) is None:
+            return 100
+        return len(path)
 
-    # calculatre the distance with the Manhattan heuristic
-    def manhattan(self, current_cell):
-        # return abs(current_cell.x - self.goal_cell.x) + abs(current_cell.y - self.goal_cell.y)
-        pass
+    def path(self, start: tuple[int], goal: tuple[int]) -> list[tuple[int]]:
+        return self.astar.search(start, goal)
 
-    # calculate the distance with the Euclidean heuristic
-    def euclidean(self, current_cell):
-        # return math.sqrt((current_cell.x - self.goal_cell.x)**2 + (current_cell.y - self.goal_cell.y)**2)
-        pass
+    def first_step_of_path(self, start: tuple[int], goal: tuple[int]) -> Direction:
+        first_movement = self.path(start,goal)[0]
+        # diff premier mouvement moins le start pour avoir la direction
+        first_direction = (first_movement[0] - start[0], first_movement[1] - start[1]) #tuple
+        return Direction[first_direction]

@@ -11,3 +11,6 @@ class Action():
 
         self.id = id
         self.direction = direction
+
+    def __str__(self) -> str:
+        return f'({self.id}, {self.direction})'
