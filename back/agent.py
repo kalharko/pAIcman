@@ -43,8 +43,8 @@ class Agent():
         self._last_direction = Direction['UP']
         self._score = 0
         self._team = team
-        self._alive = true
-        self._respawn_time = 4
+        self._alive = True
+        self._respawn_time = 8
 
     def get_position(self) -> tuple[int, int]:
         """Get agent's position

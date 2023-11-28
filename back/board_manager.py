@@ -93,11 +93,7 @@ class BoardManager():
 
         self._board.set_cell(position[0], position[1], cell)
 
-    # Function that checks and manages the collisions
-    def check_collisions(self, agents: tuple[Agent]) -> None:
-        collisions = self.get_collisions(self._agent_manager.get_all_agents())
-
-
+    # Get all the collisions on the board
     def get_collisions(self, agents: tuple[Agent]) -> list[tuple[str, str]]:
         """
         TODO : william will overwrite this non functioning function

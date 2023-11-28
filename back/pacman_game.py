@@ -6,6 +6,7 @@ from utils.action import Action
 from back.errors import PacErrAgentInWall
 from back.cell import Cell
 from back.pacman import Pacman
+from back.ghost import Ghost
 
 import os.path as os_path
 
@@ -84,8 +85,11 @@ class PacmanGame():
         # apply actions
         self._history.append(actions)
         for action in actions:
+            # See if we can apply the action
             if self._can_apply(action):
                 self._apply(action)
+                # Make a function to verify the repercussion of the other actions on this one since we are tile-based
+
             else:
                 # if action is invalid, will try to redo last action
                 agent = self._agent_manager.get_agent(action.id)
@@ -120,6 +124,61 @@ class PacmanGame():
             # collision with agent
             else:
                 pass
+
+    # Function that checks and manages the collisions
+    # Input:
+    # - agents: tupple of containing all the agents
+    # - action: action for which we check the collisions
+    # Output: Bool - can the action be made
+    def repercuting_actions(self, currentAction: Action, allActions: list[Action]) -> None:
+        """See which other actions have a repercussion on the on the agent making the action (like a ghost eating a pacman) and modify the necessary parameters
+
+        :param currentAction: Action for which we want to see the impact
+        :type currentAction: Action
+
+        param allActions: list of all the agent's actions for this simulation step
+        :type allActions: list[Action]
+        """
+        # Get the current action's agent (currentAgent)
+        currentAgent = self._agent_manager.get_agent(currentAction.id)
+        for action in allActions:
+
+            # See if the action we want to verify is legal and not the current action we are viewing
+            if ((action != currentAction) and (self._can_apply(action))):
+
+                # Get the verified action's agent (actionAgent)
+                actionAgent = self._agent_manager.get_agent(action.id)
+
+                # See if the actionAgent is next to currentAgent(orthogonally) and can have a repercussion on the agent
+                distanceAgents = currentAgent.get_position - actionAgent.get_position
+                if ((distanceAgents[0] == 0) or (distanceAgents[1] == 0)):
+                    # Verify if actions make the agents pass each other or puts them on the same space
+                    if (action.direction == (currentAction.direction * (-1)) or distanceAgents == (0, 0)):
+                        # The current agent is a pacman
+                        if (isinstance(currentAgent, Pacman)):
+                            # He is interactiong with a pacman
+                            if (isinstance(actionAgent, Pacman)):
+                                pass
+                            # He is interactiong with a ghost
+                            elif (isinstance(actionAgent, Ghost)):
+                                pass
+                            # WTF is he interacting with ?
+                            else:
+                                print("Error ! Not authorized object making a movement !" + actionAgent.get_id)
+                        # The current agent is a Ghost
+                        elif (isinstance(currentAgent, Ghost)):
+                            # He is interactiong with a pacman
+                            if (isinstance(actionAgent, Pacman)):
+                                pass
+                            # He is interactiong with a ghost
+                            elif (isinstance(actionAgent, Ghost)):
+                                pass
+                            # WTF is he interacting with ?
+                            else:
+                                print("Error ! Not authorized object making a movement !" + actionAgent.get_id)
+                        else:
+                        # WTF is the current agent ?
+                            print("Error ! Not authorized object making a movement !" + currentAction.get_id)
 
     def _can_apply(self, action: Action) -> bool:
         """Check if an agent's action can be applied
