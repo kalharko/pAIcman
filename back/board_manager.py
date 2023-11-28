@@ -27,7 +27,6 @@ class BoardManager():
         translation = {
             ' ': Cell['EMPTY'],
             '#': Cell['WALL'],
-            'D': Cell['DOOR'],
             '.': Cell['PAC_DOT'],
             'O': Cell['PAC_GUM'],
             'P': Cell['WALL']
@@ -160,14 +159,12 @@ class BoardManager():
                 cur_y = y + dy * distance
 
         # vision of other agents
-        out.update_sightings(agent.get_id(), agent.get_position())
         for a in other_team_agents:
             if a == agent:
                 continue
             x, y = a.get_position()
             if board.get_cell((x, y)) != Cell['UNKNOWN']:
-                out.update_sightings(a.get_id(), (x, y))
-
+                out.update_sightings(a))
         return out
 
     def reset(self) -> None:

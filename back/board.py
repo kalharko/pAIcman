@@ -87,7 +87,7 @@ class Board:
         for dx, dy in ((-1, 0), (0, -1), (1, 0), (0, -1)):
             out.append(self._cells[x + dx][y + dy])
         return out
-
+      
     def get_next_cell(self, position: (int, int), direction: Direction) -> Cell:
         """Get the next after moving in a certain direction
 
@@ -109,6 +109,7 @@ class Board:
         assert 0 <= y < self._height
         (dx, dy) = direction
         return self._cells[x + dx][y + dy]
+
 
     def get_all(self) -> list[list[Cell]]:
         """Get the full description of the board

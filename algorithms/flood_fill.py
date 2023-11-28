@@ -33,7 +33,7 @@ class FloodFill():
                         min_distance_found = distance + 1
                     continue
                 # continue if is a wall
-                if cell in (Cell['WALL'], Cell['DOOR'], Cell['UNKNOWN']):
+                if cell in (Cell['WALL'], Cell['UNKNOWN']):
                     continue
                 # if not too far, add to unvisited
                 if distance + 1 < min_distance_found:
