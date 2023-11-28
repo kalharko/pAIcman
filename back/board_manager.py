@@ -57,7 +57,7 @@ class BoardManager():
         assert isinstance(position[0], int)
         assert isinstance(position[1], int)
 
-        return self._board.get_cell(position[0], position[1])
+        return self._board.get_cell(position)
 
     def get_all_cells(self) -> list[list[Cell]]:
         """Get the whole board description
@@ -91,7 +91,7 @@ class BoardManager():
         assert isinstance(position[1], int)
         assert isinstance(cell, Cell)
 
-        self._board.set_cell(position[0], position[1], cell)
+        self._board.set_cell(position, cell)
 
     def get_collisions(self, agents: tuple[Agent]) -> list[tuple[str, str]]:
         """
@@ -147,11 +147,11 @@ class BoardManager():
             cur_x = x + dx * distance
             cur_y = y + dy * distance
             while (0 <= cur_x < width and 0 <= cur_y < height):
-                board.set_cell(cur_x, cur_y, self._board.get_cell(cur_x, cur_y))
-                board.set_cell(cur_x + dy, cur_y + dx, self._board.get_cell(cur_x + dy, cur_y + dx))
-                board.set_cell(cur_x - dy, cur_y - dx, self._board.get_cell(cur_x - dy, cur_y - dx))
+                board.set_cell((cur_x, cur_y), self._board.get_cell((cur_x, cur_y)))
+                board.set_cell((cur_x + dy, cur_y + dx), self._board.get_cell((cur_x + dy, cur_y + dx)))
+                board.set_cell((cur_x - dy, cur_y - dx), self._board.get_cell((cur_x - dy, cur_y - dx)))
 
-                if self._board.get_cell(cur_x, cur_y) == Cell['WALL']:
+                if self._board.get_cell((cur_x, cur_y)) == Cell['WALL']:
                     break
 
                 distance += 1
@@ -163,9 +163,8 @@ class BoardManager():
             if a == agent:
                 continue
             x, y = a.get_position()
-            if board.get_cell(x, y) != Cell['UNKNOWN']:
-                out.update_sightings(a)
-
+            if board.get_cell((x, y)) != Cell['UNKNOWN']:
+                out.update_sightings(a))
         return out
 
     def reset(self) -> None:
