@@ -10,10 +10,7 @@ from algorithms.a_star import AStar
 
 class GhostBrain(Brain):
     def __init__(self):
-        self.behavior = {
-            'predictive': self._predictive_aggression,
-            'close_proximity': self._close_proximity_aggression,
-        }
+        pass
 
     def compute_action(self, strategy: Strategy, perception: Perception, id: str) -> Action:
         """Decision making of a ghost agent for a given strategy
@@ -67,25 +64,18 @@ class GhostBrain(Brain):
         :rtype: Action
         """
 
+        # init a_star
         a_star = AStar(team.get_perception().get_board())
-        sightings = team.get_perception().get_sightings()
 
-        pacman_seen = False
-
-        for id in sightings.keys() :
-            if "P" in id : 
-                pacman_sighting = sightings[id]
-                pacman_seen = True
-
-        pacman_position = (pacman_sighting[1], pacman_sighting[2])
-
-        if not pacman_seen : 
+        # check if we have a sighting for the enemy pacman
+        pacman_sighting = team.get_perception().get_pacman_sightings()
+        if pacman_sighting is None:
             return Action(agent_id, random.choice(list(Direction)))
 
-        direction = a_star.first_step_of_path(team.get_agent(agent_id),pacman_position )
-
+        # get the action that brings the ghost closer to the last pacman sighting
+        pacman_position = (pacman_sighting[1], pacman_sighting[2])
+        direction = a_star.first_step_of_path(team.get_agent(agent_id), pacman_position)
         return Action(agent_id, direction)
-        
 
     def _defense(perception: Perception, agent_id: str) -> Action:
         """Give the best defensive action for the given agent
@@ -98,4 +88,3 @@ class GhostBrain(Brain):
         :rtype: Action
         """
         return Action(agent_id, random.choice(list(Direction)))
-    

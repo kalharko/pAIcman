@@ -109,8 +109,6 @@ class PacmanGame():
                 if isinstance(agent, Pacman):
                     if col[1] == Cell['WALL']:
                         return PacErrAgentInWall(col)
-                    elif col[1] == Cell['DOOR']:
-                        return PacErrAgentInWall(col)
                     elif col[1] == Cell['PAC_DOT']:
                         agent.add_score(5)
                         self._board_manager.set_cell(agent.get_position(), Cell['EMPTY'])
