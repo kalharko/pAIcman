@@ -135,6 +135,14 @@ class Perception():
         """
         return [sighting[1].get_id() for sighting in self.get_sightings()]
 
+    def get_ghost_ids(self) -> list[str]:
+        """Get the ids of the ghost that have been seen
+
+        :return: list of ids
+        :rtype: list[str]
+        """
+        return [sighting[1].get_id() for sighting in self.get_ghost_sightings()]
+
 
     def __str__(self) -> str:
         out = str(self._board)
