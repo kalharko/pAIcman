@@ -81,7 +81,6 @@ class Perception():
             if time == 0:
                 self._ghost_sightings[ghost.get_id()] = [0, deepcopy(ghost)]
 
-
     def get_board(self) -> Board:
         """Get the perception's board
 

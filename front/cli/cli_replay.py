@@ -23,6 +23,10 @@ class CliReplay():
 
         self._fancy_walls = [[]]
         self._step_count = 0
+        for line in environment.get_history():
+            for a in line:
+                print(a, end=' ')
+            print()
         if input('Start curses replay ? (Y/n)') == 'n':
             return
 
@@ -92,7 +96,8 @@ class CliReplay():
         char_pacman = {Direction['UP']: 'ᗢ',
                        Direction['RIGHT']: 'ᗧ',
                        Direction['DOWN']: 'ᗣ',
-                       Direction['LEFT']: 'ᗤ'}
+                       Direction['LEFT']: 'ᗤ',
+                       Direction['NONE']: 'X'}
         char_ghost = 'ᗝ'
         color_ghost = [4, 5, 6]
 

@@ -6,6 +6,7 @@ from algorithms.ghost_brain import GhostBrain
 from utils.strategy import Strategy
 from front.cli.cli_replay import CliReplay
 from argparse import ArgumentParser
+import time
 
 
 class Main():
@@ -29,7 +30,6 @@ class Main():
         :type team2_decision_algo: str
         """
         self.scenario = 0 if team1_decision_algo != team2_decision_algo else 2
-        self.scenario =3
         if self.scenario != 0:
             self.scenario = 1 if team1_decision_algo == 'utility' else 2
 
@@ -103,8 +103,10 @@ if __name__ == '__main__':
 
     main = Main(args.map_path, args.team1_decision_algo, args.team2_decision_algo)
     print(f'Playing on map {args.map_path}, with team1 using {args.team1_decision_algo} and team2 using {args.team2_decision_algo}')
-    for i in range(100):
+    for i in range(20):
+        print('iteration :', i)
+        start_time = time.time()
         main.cycle()
-        if input(f'Cycle : {i},\t\tq to stop') == 'q':
+        if time.time() - start_time > 10:
             break
     replay = CliReplay(main.environment)

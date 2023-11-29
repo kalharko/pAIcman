@@ -36,7 +36,7 @@ class Utility():
             positions = []
             for direction in self.directions:
                 new_pos = agent.try_move(direction)
-                if board.get_cell(new_pos) in (Cell['WALL']):
+                if board.get_cell(new_pos) == Cell['WALL']:
                     continue
                 positions.append(copy.copy(new_pos))
             possible_positions[agent.get_id()] = copy.deepcopy(positions)
@@ -91,7 +91,6 @@ class Utility():
 
             # measure expected utilities
             expected_utilities = []
-            print(decisional_agent_id)
             for action in possible_positions[decisional_agent_id]:
                 eu = 0
                 for og_positions, probability in states:
@@ -128,7 +127,6 @@ class Utility():
         # general data
         perception = team.get_perception()
         board = perception.get_board()
-        width, height = board.get_size()
         team_ids = list(team.get_ids())
         flood_fill = FloodFill(board)
         a_star = AStar(board)
@@ -147,7 +145,7 @@ class Utility():
         # team's danger level
         danger = 0
         other_team_danger = 0
-        for time, enemy_ghost in perception.get_ghost_sightings():
+        for _, enemy_ghost in perception.get_ghost_sightings():
             if enemy_ghost.is_vulnerable():
                 other_team_danger += a_star.distance(team.get_pacman().get_position(), enemy_ghost.get_position())
             else:
@@ -162,5 +160,4 @@ class Utility():
                 else:
                     other_team_danger += a_star.distance(enemy_pacman.get_position(), ghost.get_position())
 
-        print(min_dist_to_score, min(min_dist_to_unknown), danger, other_team_danger)
         return -min_dist_to_score / 30 - min(min_dist_to_unknown) / 30 - danger / 90 + other_team_danger / 90
