@@ -169,3 +169,11 @@ class PacmanGame():
         """Get the history of all the actions given during the game
         """
         return self._history
+
+    def get_agent_manager(self) -> AgentManager:
+        """
+        Get the agent manager of the game
+        :return: the agent manager
+        :rtype : AgentManager
+        """
+        return self._agent_manager

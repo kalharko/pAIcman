@@ -66,11 +66,12 @@ class Perception():
         other_board = other.get_board()
         for x in range(width):
             for y in range(height):
-                if other_board.get_cell(x, y) == Cell['UNKNOWN']:
+                if other_board.get_cell((x, y)) == Cell['UNKNOWN']:
                     continue
                 if (x, y) not in self._last_cell_seen:
                     self._last_cell_seen.append((x, y))
-                self._board.set_cell(x, y, other_board.get_cell(x, y))
+
+                self._board.set_cell((x, y), other_board.get_cell((x, y)))
         # update Pacman seen
         sighting = other.get_pacman_sighting()
         if len(sighting) > 0 and sighting[0][0] == 0:
@@ -79,6 +80,7 @@ class Perception():
         for time, ghost in other.get_ghost_sightings():
             if time == 0:
                 self._ghost_sightings[ghost.get_id()] = [0, deepcopy(ghost)]
+
 
     def get_board(self) -> Board:
         """Get the perception's board
@@ -141,6 +143,7 @@ class Perception():
         """
         return [sighting[1].get_id() for sighting in self.get_ghost_sightings()]
 
+
     def __str__(self) -> str:
         out = str(self._board)
         width, _ = self._board.get_size()
@@ -152,3 +155,19 @@ class Perception():
             x, y = pos
             out = out[:(width + 1) * y + x] + id[0] + out[(width + 1) * y + x + 1:]
         return out + str(self._agents_seen) + '\n'
+
+    def is_visible(self, position : (int, int), agent_id : str) -> bool:
+        """
+        check if the cell position is visible or not in the perception of the agent agent_id
+
+        :param position: the position of the cell that we want to check
+        :type (int, int)
+        :param agent_id: the agent perception we want to check
+        :type agent_id : str
+        :return: return true if the cell is visible and false instead
+        :rtype bool
+        """
+
+        #TODO: implement the fonction
+
+        return True
