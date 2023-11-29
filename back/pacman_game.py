@@ -138,11 +138,11 @@ class PacmanGame():
         currentAgent = self._agent_manager.get_agent(currentAction.id)
         for action in allActions:
 
-            # See if the action we want to verify is legal and not the current action we are viewing
-            if ((action != currentAction) and (self._can_apply(action))):
+            # Get the verified action's agent (actionAgent)
+            actionAgent = self._agent_manager.get_agent(action.id)
 
-                # Get the verified action's agent (actionAgent)
-                actionAgent = self._agent_manager.get_agent(action.id)
+            # See if the action we want to verify is legal and not the current action we are viewing
+            if ((action != currentAction) and (actionAgent._alive) and (self._can_apply(action))):
 
                 # See if the actionAgent is next to currentAgent(orthogonally) and can have a repercussion on the agent
                 distanceAgents = currentAgent.get_position - actionAgent.get_position
