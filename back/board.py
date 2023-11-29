@@ -104,10 +104,8 @@ class Board():
         translation = {
             Cell['EMPTY']: ' ',
             Cell['WALL']: '#',
-            Cell['DOOR']: '_',
             Cell['PAC_DOT']: '.',
             Cell['PAC_GUM']: 'o',
-            Cell['PIPE']: 'P',
             Cell['UNKNOWN']: '~'
         }
         out = ''
