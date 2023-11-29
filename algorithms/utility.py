@@ -1,7 +1,6 @@
 
 
 import copy
-import random
 from algorithms.flood_fill import FloodFill
 from back.team import Team
 from utils.action import Action
@@ -21,21 +20,15 @@ class Utility():
     def run(self, team: Team) -> list[Action]:
         assert isinstance(team, Team)
 
-        print()
-        print('Start of Utility.run()')
-        print(team)
-
         # important data
         possible_positions = {}  # contains agent_id: [(x, y), (x,y), ...]
         # used data
-        board = team.get_perception().get_board()
+        perception = team.get_perception()
+        board = perception.get_board()
         board_width, board_height = board.get_size()
-        last_seen = team.get_perception().get_agents_seen()
-        team_ids = list(team.get_ids())
-        all_ids = list(last_seen.keys())
-        other_ids = copy.copy(all_ids)
-        for id in team_ids:
-            other_ids.remove(id)
+        pacman_sighting = perception.get_pacman_sighting()
+        ghost_sightings = perception.get_ghost_sightings()
+        all_ids = list(team.get_ids()) + perception.get_ids()
         astar = AStar(board)
 
         # decisional agent's team agents positions and probability
@@ -43,18 +36,16 @@ class Utility():
             positions = []
             for direction in self.directions:
                 new_pos = agent.try_move(direction)
-                if board.get_cell(new_pos[0], new_pos[1]) in (Cell['WALL'], Cell['DOOR']):
+                if board.get_cell(new_pos) in (Cell['WALL']):
                     continue
                 positions.append(copy.copy(new_pos))
             possible_positions[agent.get_id()] = copy.deepcopy(positions)
 
         # other team agents positions and probability
         # TODO bake probability in possible positions and optimize position count of ennemies not seen for a while
-        for agent_id, value in last_seen.items():
-            if agent_id in team_ids:
-                continue
-            how_long_ago, position = value
-            og_x, og_y = position
+        for value in pacman_sighting + ghost_sightings:
+            how_long_ago, agent = value
+            og_x, og_y = agent.get_position()
             positions = [(og_x, og_y)]
             # iterate on positions of a square of size how_long_ago, centered on agent last seen position
             for dx in range(-how_long_ago, how_long_ago + 1):
@@ -67,7 +58,7 @@ class Utility():
                     if not (0 <= x < board_width and 0 <= y < board_height):
                         continue
                     # quit if is an illegal position
-                    if board.get_cell(x, y) in (Cell['WALL'], Cell['DOOR']):
+                    if board.get_cell((x, y)) in (Cell['WALL']):
                         continue
                     # second, more precise check of distance
                     if astar.distance((x, y), (og_x, og_y)) > how_long_ago:
@@ -75,11 +66,7 @@ class Utility():
                     # finaly position is valid, so we keep it
                     if not (x, y) in positions:
                         positions.append((og_x + dx, og_y + dy))
-            possible_positions[agent_id] = positions
-
-        print('possible positions')
-        for key, value in possible_positions.items():
-            print(key, value)
+            possible_positions[agent.get_id()] = positions
 
         # chose action
         out = []
@@ -113,7 +100,6 @@ class Utility():
                 expected_utilities.append(eu)
 
             # choose max expected utility
-            print(decisional_agent_id, expected_utilities)
             chosen_action = possible_positions[decisional_agent_id][expected_utilities.index(max(expected_utilities))]
             out.append((decisional_agent_id, chosen_action))
             possible_positions[decisional_agent_id] = [chosen_action]
@@ -143,18 +129,18 @@ class Utility():
         width, height = board.get_size()
         team_ids = list(team.get_ids())
         flood_fill = FloodFill(board)
-        astar = AStar(board)
+        a_star = AStar(board)
 
         # distance to score gain
         pacman_pos = positions[all_ids.index(team.get_pacman().get_id())]
         min_dist_to_score = flood_fill.closest_cell(pacman_pos[0], pacman_pos[1], Cell['PAC_DOT'])
 
         # distance to unknown cell
-        min_dist_to_unknown = []
-        for id, position in zip(all_ids, positions):
-            if id not in team_ids:
-                continue
-            min_dist_to_unknown.append(flood_fill.closest_cell(position[0], position[1], Cell['UNKNOWN']))
+        # min_dist_to_unknown = []
+        # for id, position in zip(all_ids, positions):
+        #     if id not in team_ids:
+        #         continue
+        #     min_dist_to_unknown.append(flood_fill.closest_cell(position[0], position[1], Cell['UNKNOWN']))
 
         # team's danger level
         # TODO
@@ -162,4 +148,4 @@ class Utility():
         # other team's agent danger level
         # TODO
 
-        return 1 / (1 + min_dist_to_score) + len(min_dist_to_unknown) / sum(min_dist_to_unknown)
+        return 1 / (1 + min_dist_to_score)  # + len(min_dist_to_unknown) / sum(min_dist_to_unknown)

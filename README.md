@@ -30,5 +30,7 @@ pip install -r requirements.txt
 # Launch one of our algorithms
 At the project's root
 ```
-python algorithms/<algorithm_to_visualize>.py
+python main.py <map_path> <team1_decision_algo> <team2_decision_algo>
 ```
+With `map_path` an optional argument that default to `maps/original.txt`.
+With `team1_decision_algo` and `team2_decision_algo` defaulting to `utility` and `strategy_triangle`

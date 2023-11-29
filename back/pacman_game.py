@@ -11,18 +11,27 @@ import os.path as os_path
 
 
 class PacmanGame():
+    """Root class of this pacman game inplementation
+    """
     _board_manager: BoardManager
     _agent_manager: AgentManager
     _path_board: str
     _history: list[list[Action]]
 
     def __init__(self) -> None:
+        """PacmanGame's initialization
+        """
         self._board_manager = BoardManager()
         self._agent_manager = AgentManager()
         self._path_board = None
         self._history = []
 
     def load_map(self, path: str) -> None:
+        """Load a pacman map from a file path
+
+        :param path: path to the map file to load
+        :type path: str
+        """
         assert isinstance(path, str)
 
         if not os_path.exists(path):
@@ -44,15 +53,30 @@ class PacmanGame():
         self._agent_manager.update_perceptions(self._board_manager)
 
     def gather_state(self) -> tuple[Team]:
+        """Get the game's state
+
+        :return: game's state, wich is the teams informations with their perceptions
+        :rtype: tuple[Team]
+        """
         return self._agent_manager.get_teams()
 
     def gather_cli_state(self) -> tuple[list[list[Cell]], list[Agent]]:
+        """Get the the board description necessary to represent it in the cli
+
+        :return: board description for cli representation
+        :rtype: tuple[list[list[Cell]], list[Agent]]
+        """
         return (
             self._board_manager.get_all_cells(),
             self._agent_manager.get_all_agents()
         )
 
     def step(self, actions: list[Action]) -> None:
+        """Step the pacman's game simulation by applying the agent's actions
+
+        :param actions: list of all the agent's actions for this simulation step
+        :type actions: list[Action]
+        """
         assert isinstance(actions, list)
         assert len(actions) > 0
         assert isinstance(actions[0], Action)
@@ -85,8 +109,6 @@ class PacmanGame():
                 if isinstance(agent, Pacman):
                     if col[1] == Cell['WALL']:
                         return PacErrAgentInWall(col)
-                    elif col[1] == Cell['DOOR']:
-                        return PacErrAgentInWall(col)
                     elif col[1] == Cell['PAC_DOT']:
                         agent.add_score(5)
                         self._board_manager.set_cell(agent.get_position(), Cell['EMPTY'])
@@ -98,30 +120,60 @@ class PacmanGame():
                 pass
 
     def _can_apply(self, action: Action) -> bool:
+        """Check if an agent's action can be applied
+
+        :param action: action to test
+        :type action: Action
+        :return: True if the action is legal, False if not
+        :rtype: bool
+        """
         assert isinstance(action, Action)
 
         agent = self._agent_manager.get_agent(action.id)
         cell = self._board_manager.get_cell(agent.try_move(action.direction))
 
         if isinstance(agent, Pacman):
-            if cell not in (Cell['WALL'], Cell['DOOR']):
+            if cell != Cell['WALL']:
                 return True
         else:
             if cell != Cell['WALL']:
                 return True
         return False
 
-    def _apply(self, action) -> None:
+    def _apply(self, action: Action) -> None:
+        """Apply an action
+
+        :param action: action to apply
+        :type action: Action
+        """
         assert isinstance(action, Action)
+
         agent = self._agent_manager.get_agent(action.id)
         agent.move(action.direction)
 
     def get_board_size(self) -> tuple[int, int]:
+        """Get the game's board size
+
+        :return: the game's board size (width, height)
+        :rtype: tuple[int, int]
+        """
         return self._board_manager.get_board_size()
 
     def reset(self) -> None:
+        """Reset of the game
+        """
         self._agent_manager.reset()
         self._board_manager.reset()
 
     def get_history(self) -> None:
+        """Get the history of all the actions given during the game
+        """
         return self._history
+
+    def get_agent_manager(self) -> AgentManager:
+        """
+        Get the agent manager of the game
+        :return: the agent manager
+        :rtype : AgentManager
+        """
+        return self._agent_manager
