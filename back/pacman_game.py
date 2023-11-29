@@ -125,11 +125,6 @@ class PacmanGame():
             else:
                 pass
 
-    # Function that checks and manages the collisions
-    # Input:
-    # - agents: tupple of containing all the agents
-    # - action: action for which we check the collisions
-    # Output: Bool - can the action be made
     def repercuting_actions(self, currentAction: Action, allActions: list[Action]) -> None:
         """See which other actions have a repercussion on the on the agent making the action (like a ghost eating a pacman) and modify the necessary parameters
 
@@ -156,29 +151,29 @@ class PacmanGame():
                     if (action.direction == (currentAction.direction * (-1)) or distanceAgents == (0, 0)):
                         # The current agent is a pacman
                         if (isinstance(currentAgent, Pacman)):
-                            # He is interactiong with a pacman
+                            # He is interacting with a pacman
                             if (isinstance(actionAgent, Pacman)):
                                 pass
-                            # He is interactiong with a ghost
+                            # He is interacting with a ghost
                             elif (isinstance(actionAgent, Ghost)):
-                                pass
+                                currentAgent._alive = False
                             # WTF is he interacting with ?
                             else:
                                 print("Error ! Not authorized object making a movement !" + actionAgent.get_id)
                         # The current agent is a Ghost
                         elif (isinstance(currentAgent, Ghost)):
-                            # He is interactiong with a pacman
+                            # He is interacting with a pacman
                             if (isinstance(actionAgent, Pacman)):
-                                pass
-                            # He is interactiong with a ghost
+                                actionAgent._alive = False
+                            # He is interacting with a ghost
                             elif (isinstance(actionAgent, Ghost)):
                                 pass
                             # WTF is he interacting with ?
                             else:
                                 print("Error ! Not authorized object making a movement !" + actionAgent.get_id)
-                        else:
                         # WTF is the current agent ?
-                            print("Error ! Not authorized object making a movement !" + currentAction.get_id)
+                        else:
+                            print("Error ! Not authordized object making a movement !" + currentAction.get_id)
 
     def _can_apply(self, action: Action) -> bool:
         """Check if an agent's action can be applied
