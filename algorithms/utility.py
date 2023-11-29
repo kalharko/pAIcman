@@ -91,6 +91,7 @@ class Utility():
 
             # measure expected utilities
             expected_utilities = []
+            print(decisional_agent_id)
             for action in possible_positions[decisional_agent_id]:
                 eu = 0
                 for og_positions, probability in states:
@@ -125,7 +126,8 @@ class Utility():
         # - other team's agent danger level
 
         # general data
-        board = team.get_perception().get_board()
+        perception = team.get_perception()
+        board = perception.get_board()
         width, height = board.get_size()
         team_ids = list(team.get_ids())
         flood_fill = FloodFill(board)
@@ -136,16 +138,29 @@ class Utility():
         min_dist_to_score = flood_fill.closest_cell(pacman_pos[0], pacman_pos[1], Cell['PAC_DOT'])
 
         # distance to unknown cell
-        # min_dist_to_unknown = []
-        # for id, position in zip(all_ids, positions):
-        #     if id not in team_ids:
-        #         continue
-        #     min_dist_to_unknown.append(flood_fill.closest_cell(position[0], position[1], Cell['UNKNOWN']))
+        min_dist_to_unknown = []
+        for id, position in zip(all_ids, positions):
+            if id not in team_ids:
+                continue
+            min_dist_to_unknown.append(flood_fill.closest_cell(position[0], position[1], Cell['UNKNOWN']))
 
         # team's danger level
-        # TODO
+        danger = 0
+        other_team_danger = 0
+        for time, enemy_ghost in perception.get_ghost_sightings():
+            if enemy_ghost.is_vulnerable():
+                other_team_danger += a_star.distance(team.get_pacman().get_position(), enemy_ghost.get_position())
+            else:
+                danger += a_star.distance(team.get_pacman().get_position(), enemy_ghost.get_position())
 
-        # other team's agent danger level
-        # TODO
+        pacman_sighting = perception.get_pacman_sighting()
+        if pacman_sighting != []:
+            enemy_pacman = pacman_sighting[0][1]
+            for ghost in team.get_ghosts():
+                if ghost.is_vulnerable():
+                    danger += a_star.distance(enemy_pacman.get_position(), ghost.get_position())
+                else:
+                    other_team_danger += a_star.distance(enemy_pacman.get_position(), ghost.get_position())
 
-        return 1 / (1 + min_dist_to_score)  # + len(min_dist_to_unknown) / sum(min_dist_to_unknown)
+        print(min_dist_to_score, min(min_dist_to_unknown), danger, other_team_danger)
+        return -min_dist_to_score / 30 - min(min_dist_to_unknown) / 30 - danger / 90 + other_team_danger / 90
