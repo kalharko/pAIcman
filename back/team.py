@@ -10,6 +10,7 @@ class Team():
     """Class managing the agents in a team
     """
     _pacman: Pacman
+    _team_number: int
     _ghosts: list[Ghost]
     _perception: Perception
     _score: int
@@ -28,6 +29,7 @@ class Team():
         self._ghosts = []
         self._perception = Perception(board_size)
         self._score = 0
+        self._team_number = None
 
     def set_pacman(self, value: Pacman) -> None:
         """Set the team's pacman
@@ -38,6 +40,7 @@ class Team():
         assert isinstance(value, Pacman)
 
         self._pacman = value
+        self._team_number = self._pacman.get_team()
 
     def add_ghost(self, value: Ghost) -> None:
         """Add a ghost to the team's agents
