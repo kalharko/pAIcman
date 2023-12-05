@@ -25,10 +25,6 @@ class CliReplay():
 
         self._fancy_walls = [[]]
         self._step_count = 0
-        for line in self._game.get_history():
-            for a in line:
-                print(a, end=' ')
-            print()
         if input('Start curses replay ? (Y/n)') == 'n':
             return
 
@@ -58,14 +54,12 @@ class CliReplay():
 
         curses.init_pair(1, curses.COLOR_BLUE, 0)  # wall
         curses.init_pair(2, 250, 0)  # dots
-        curses.init_pair(3, curses.COLOR_BLUE, curses.COLOR_RED)  # wall in perception team 1
-        curses.init_pair(4, 250, curses.COLOR_RED)  # dots in perception team 1
+        curses.init_pair(3, curses.COLOR_BLUE, 250)  # wall in perception team 1
+        curses.init_pair(4, curses.COLOR_CYAN, 0)  # dots in perception team 1
         curses.init_pair(5, curses.COLOR_YELLOW, 0)  # pacman team 1
         curses.init_pair(6, curses.COLOR_MAGENTA, 0)  # ghost team 1
         curses.init_pair(7, curses.COLOR_YELLOW, curses.COLOR_RED)  # pacman team 2
-        curses.init_pair(8, curses.COLOR_MAGENTA, curses.COLOR_RED)  # ghost team 2
-        curses.init_pair(9, curses.COLOR_MAGENTA, curses.COLOR_RED)  # pacman team 2 in perception team 1
-        curses.init_pair(10, curses.COLOR_MAGENTA, curses.COLOR_RED)  # ghost team 2 in perception team 1
+        curses.init_pair(8, curses.COLOR_RED, 0)  # ghost team 2
 
         # main loop
         self.main_loop()
@@ -91,13 +85,11 @@ class CliReplay():
         self._screen.border()
         self._screen.refresh()
 
-        # board
-        teams = self._game._agent_manager.get_teams()
-        team1, team2 = (teams[0], teams[1]) if teams[0]._team_number == 0 else (teams[1], teams[0])
+        team1, team2 = self._game._agent_manager.get_teams()
         last_cells_seen_by_team1 = team1.get_perception().get_last_cells_seen()
         board = self._game._board_manager.get_all_cells()
-        char_cell = [' ', '#', '·', 'Ø']
-        color_cell = [1, 1, 2, 2]
+        char_cell = [' ', '#', '·', 'Ø', '~']
+        color_cell = [1, 1, 2, 2, 8]
         char_pacman = {Direction['UP']: 'ᗢ',
                        Direction['RIGHT']: 'ᗧ',
                        Direction['DOWN']: 'ᗣ',
@@ -105,16 +97,17 @@ class CliReplay():
                        Direction['NONE']: 'X'}
         char_ghost = 'ᗝ'
 
+        # board
         for x in range(len(board)):
             for y in range(len(board[0])):
                 if board[x][y] == Cell['WALL']:
                     char = self._fancy_walls[x][y]
                 else:
                     char = char_cell[board[x][y].value]
-                color = curses.color_pair(color_cell[board[x][y].value])
+                color = color_cell[board[x][y].value]
                 if (x, y) in last_cells_seen_by_team1:
                     color += 3
-                self._screen.addstr(y + 1, x + 1, char, color)
+                self._screen.addstr(y + 1, x + 1, char, curses.color_pair(color))
 
         # agents team 1
         x, y = team1.get_pacman().get_position()
@@ -124,17 +117,11 @@ class CliReplay():
             self._screen.addstr(y + 1, x + 1, char_ghost, curses.color_pair(6))
 
         # agents team 2
-        x, y = team1.get_pacman().get_position()
-        if (x, y) in last_cells_seen_by_team1:
-            self._screen.addstr(y + 1, x + 1, char_pacman[team1.get_pacman().get_last_direction()], curses.color_pair(9))
-        else:
-            self._screen.addstr(y + 1, x + 1, char_pacman[team1.get_pacman().get_last_direction()], curses.color_pair(7))
-        for ghost in team1.get_ghosts():
+        x, y = team2.get_pacman().get_position()
+        self._screen.addstr(y + 1, x + 1, char_pacman[team1.get_pacman().get_last_direction()], curses.color_pair(7))
+        for ghost in team2.get_ghosts():
             x, y = ghost.get_position()
-            if (x, y) in last_cells_seen_by_team1:
-                self._screen.addstr(y + 1, x + 1, char_ghost, curses.color_pair(10))
-            else:
-                self._screen.addstr(y + 1, x + 1, char_ghost, curses.color_pair(8))
+            self._screen.addstr(y + 1, x + 1, char_ghost, curses.color_pair(8))
 
         # comments
         y = 1

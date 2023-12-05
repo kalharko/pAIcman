@@ -163,10 +163,10 @@ class PacmanGame():
         self._agent_manager.reset()
         self._board_manager.reset()
 
-    def get_history(self) -> None:
-        """Get the history of all the actions given during the game
+    def get_teams(self) -> None:
+        """Get the game's teams
         """
-        return self._history
+        return self._agent_manager.get_teams()
 
     def get_agent_manager(self) -> AgentManager:
         """
