@@ -1,70 +1,88 @@
 from back.board_manager import BoardManager
 from back.agent_manager import AgentManager
 from back.agent import Agent
+from back.team import Team
 from utils.action import Action
-from utils.board import Board
 from back.errors import PacErrAgentInWall
-from utils.cell import Cell
+from back.cell import Cell
 from back.pacman import Pacman
 
 import os.path as os_path
 
 
 class PacmanGame():
+    """Root class of this pacman game inplementation
+    """
     _board_manager: BoardManager
     _agent_manager: AgentManager
     _path_board: str
     _history: list[list[Action]]
 
     def __init__(self) -> None:
+        """PacmanGame's initialization
+        """
         self._board_manager = BoardManager()
         self._agent_manager = AgentManager()
         self._path_board = None
         self._history = []
 
     def load_map(self, path: str) -> None:
+        """Load a pacman map from a file path
+
+        :param path: path to the map file to load
+        :type path: str
+        """
         assert isinstance(path, str)
 
         if not os_path.exists(path):
             return FileNotFoundError()
+        self._path_board = path
 
         with open(path, 'r') as file:
             lines = file.readlines()
 
-        if err := self._board_manager.load(lines) is not None:
-            return err
+        # load board
+        board_description = lines[lines.index('|\n') + 1:]
+        self._board_manager.load(board_description)
 
-        self._path_board = path
+        # load agents
+        agents_description = lines[:lines.index('|\n')]
+        self._agent_manager.load(agents_description, self._board_manager.get_board_size())
 
-    def set_agents(self, agents: list[Agent]) -> None:
-        assert isinstance(agents, list)
-        assert len(agents) > 0
-        assert isinstance(agents[0], Agent)
+        # first perception
+        self._agent_manager.update_perceptions(self._board_manager)
 
-        for agent in agents:
-            cell = self._board_manager.get_cell(agent.get_position())
-            if cell == Cell['WALL'] or cell == Cell['DOOR']:
-                return PacErrAgentInWall(agent)
-        self._agent_manager.set_agents(agents)
+    def gather_state(self) -> tuple[Team]:
+        """Get the game's state
 
-    def gather_state(self) -> tuple[tuple[str, Board, tuple[tuple[str, int, int]]]]:
-        out = []
-        for agent in self._agent_manager.get_all_agents():
-             board, agents_seen = self._board_manager.get_vision(agent, self._agent_manager.get_all_agents())
-             out.append((agent.get_id(), board, agents_seen))
-        return tuple(out)
+        :return: game's state, wich is the teams informations with their perceptions
+        :rtype: tuple[Team]
+        """
+        return self._agent_manager.get_teams()
 
     def gather_cli_state(self) -> tuple[list[list[Cell]], list[Agent]]:
+        """Get the the board description necessary to represent it in the cli
+
+        :return: board description for cli representation
+        :rtype: tuple[list[list[Cell]], list[Agent]]
+        """
         return (
             self._board_manager.get_all_cells(),
             self._agent_manager.get_all_agents()
         )
 
     def step(self, actions: list[Action]) -> None:
+        """Step the pacman's game simulation by applying the agent's actions
+
+        :param actions: list of all the agent's actions for this simulation step
+        :type actions: list[Action]
+        """
         assert isinstance(actions, list)
         assert len(actions) > 0
         assert isinstance(actions[0], Action)
 
+        # apply actions
+        self._history.append(actions)
         for action in actions:
             if self._can_apply(action):
                 self._apply(action)
@@ -77,6 +95,9 @@ class PacmanGame():
                 else:
                     continue  # correct behavior ?
 
+        # update team's perception
+        self._agent_manager.update_perceptions(self._board_manager)
+
         # check collision
         collisions = self._board_manager.get_collisions(self._agent_manager.get_all_agents())
 
@@ -87,9 +108,7 @@ class PacmanGame():
             if isinstance(col[1], Cell):
                 if isinstance(agent, Pacman):
                     if col[1] == Cell['WALL']:
-                        return PacErrPacmanInWall(col)
-                    elif col[1] == Cell['DOOR']:
-                        return PacErrPacmanInWall(col)
+                        return PacErrAgentInWall(col)
                     elif col[1] == Cell['PAC_DOT']:
                         agent.add_score(5)
                         self._board_manager.set_cell(agent.get_position(), Cell['EMPTY'])
@@ -100,36 +119,61 @@ class PacmanGame():
             else:
                 pass
 
-        self._history.append(actions)
-
     def _can_apply(self, action: Action) -> bool:
+        """Check if an agent's action can be applied
+
+        :param action: action to test
+        :type action: Action
+        :return: True if the action is legal, False if not
+        :rtype: bool
+        """
         assert isinstance(action, Action)
 
         agent = self._agent_manager.get_agent(action.id)
         cell = self._board_manager.get_cell(agent.try_move(action.direction))
 
-        out = False
         if isinstance(agent, Pacman):
-            if cell not in (Cell['WALL'], Cell['DOOR']):
-                out = True
+            if cell != Cell['WALL']:
+                return True
         else:
             if cell != Cell['WALL']:
-                out = True
+                return True
+        return False
 
-        return out
+    def _apply(self, action: Action) -> None:
+        """Apply an action
 
-    def _apply(self, action) -> None:
+        :param action: action to apply
+        :type action: Action
+        """
         assert isinstance(action, Action)
 
         agent = self._agent_manager.get_agent(action.id)
         agent.move(action.direction)
 
     def get_board_size(self) -> tuple[int, int]:
+        """Get the game's board size
+
+        :return: the game's board size (width, height)
+        :rtype: tuple[int, int]
+        """
         return self._board_manager.get_board_size()
 
     def reset(self) -> None:
-        self._agent_manager.reset_all()
+        """Reset of the game
+        """
+        self._agent_manager.reset()
         self._board_manager.reset()
 
     def get_history(self) -> None:
+        """Get the history of all the actions given during the game
+        """
         return self._history
+
+    def get_agent_manager(self) -> AgentManager:
+        """
+        Get the agent manager of the game
+        :return: the agent manager
+        :rtype : AgentManager
+        """
+        return self._agent_manager
