@@ -7,6 +7,7 @@ from utils.action import Action
 from utils.direction import Direction
 from back.cell import Cell
 from algorithms.a_star import AStar
+from utils.replay_logger import ReplayLogger
 
 
 class Utility():

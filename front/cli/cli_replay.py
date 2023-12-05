@@ -1,4 +1,3 @@
-import copy
 from curses import wrapper
 import curses
 import locale
@@ -7,7 +6,6 @@ from back.cell import Cell
 from back.pacman_game import PacmanGame
 from utils.action import Action
 from utils.replay_logger import ReplayLogger
-from back.pacman import Pacman
 from utils.direction import Direction
 
 
@@ -126,7 +124,7 @@ class CliReplay():
         # comments
         y = 1
         for comment in comments:
-            self._screen.addstr(y, len(board), comment[:self._screenW - len(board)])
+            self._screen.addstr(y, len(board) + 1, comment[:self._screenW - len(board)])
 
             y += 1
             if y + 1 >= self._screenH:
