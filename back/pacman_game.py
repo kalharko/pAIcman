@@ -16,7 +16,6 @@ class PacmanGame():
     _board_manager: BoardManager
     _agent_manager: AgentManager
     _path_board: str
-    _history: list[list[Action]]
 
     def __init__(self) -> None:
         """PacmanGame's initialization
@@ -82,7 +81,6 @@ class PacmanGame():
         assert isinstance(actions[0], Action)
 
         # apply actions
-        self._history.append(actions)
         for action in actions:
             if self._can_apply(action):
                 self._apply(action)
