@@ -6,7 +6,9 @@ from algorithms.ghost_brain import GhostBrain
 from utils.strategy import Strategy
 from front.cli.cli_replay import CliReplay
 from argparse import ArgumentParser
+from utils.replay_logger import ReplayLogger
 import time
+import random
 
 
 class Main():
@@ -36,6 +38,7 @@ class Main():
         # set up environment
         self.environment = PacmanGame()
         self.environment.load_map(map_path)
+        ReplayLogger().log_map(map_path)
 
         # brains
         self.brain_ghost = GhostBrain(self.environment.get_agent_manager())
@@ -81,6 +84,8 @@ class Main():
 
         # apply to environment
         self.environment.step(actions)
+        # save for replay
+        ReplayLogger().log_step(actions)
 
 
 if __name__ == '__main__':
@@ -103,10 +108,10 @@ if __name__ == '__main__':
 
     main = Main(args.map_path, args.team1_decision_algo, args.team2_decision_algo)
     print(f'Playing on map {args.map_path}, with team1 using {args.team1_decision_algo} and team2 using {args.team2_decision_algo}')
-    for i in range(20):
+    for i in range(2):
         print('iteration :', i)
         start_time = time.time()
         main.cycle()
         if time.time() - start_time > 10:
             break
-    replay = CliReplay(main.environment)
+    replay = CliReplay()
