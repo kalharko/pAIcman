@@ -7,6 +7,7 @@ from utils.direction import Direction
 from utils.strategy import Strategy
 from utils.action import Action
 from algorithms.a_star import AStar
+from back.team import Team
 
 
 class GhostBrain(Brain):
@@ -14,7 +15,7 @@ class GhostBrain(Brain):
     def __init__(self, agent_manager):
         self._agentManager = agent_manager
 
-    def compute_action(self, strategy: Strategy, perception: Perception, id: str) -> Action:
+    def compute_action(self, strategy: Strategy, team: Team, id: str) -> Action:
         """Decision making of a ghost agent for a given strategy
 
         :param strategy: strategy that the ghost agent will apply
@@ -27,7 +28,7 @@ class GhostBrain(Brain):
         :rtype: Action
         """
         assert isinstance(strategy, Strategy)
-        assert isinstance(perception, Perception)
+        assert isinstance(team, Team)
         assert isinstance(id, str)
 
         if strategy == Strategy['RANDOM']:
@@ -37,7 +38,7 @@ class GhostBrain(Brain):
             return Action(id, random.choice(list(Direction)))
 
         if strategy == Strategy['AGRESSION']:
-            return self._aggression(perception, id)
+            return self._aggression(team, id)
             # return Action(id, random.choice(list(Direction)))
 
         if strategy == Strategy['DEFENSE']:
