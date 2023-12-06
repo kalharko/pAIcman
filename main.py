@@ -62,9 +62,9 @@ class Main():
             strat_team_b = ((agent, Strategy['RANDOM']) for agent in team_b.get_agents())
             for agent, strat in strat_team_b:
                 if isinstance(agent, Pacman):
-                    actions.append(self.brain_pacman.compute_action(strat, team_b.get_perception(), agent.get_id()))
+                    actions.append(self.brain_pacman.compute_action(strat, team_b, agent.get_id()))
                 else:
-                    actions.append(self.brain_ghost.compute_action(strat, team_b.get_perception(), agent.get_id()))
+                    actions.append(self.brain_ghost.compute_action(strat, team_b, agent.get_id()))
         elif self.scenario == 1:  # utility vs utility
             actions = self.utility.run(team_a)
             actions += self.utility.run(team_b)
@@ -108,7 +108,7 @@ if __name__ == '__main__':
 
     main = Main(args.map_path, args.team1_decision_algo, args.team2_decision_algo)
     print(f'Playing on map {args.map_path}, with team1 using {args.team1_decision_algo} and team2 using {args.team2_decision_algo}')
-    for i in range(50):
+    for i in range(75):
         print('\riteration :', i, end='')
         start_time = time.time()
         main.cycle()
