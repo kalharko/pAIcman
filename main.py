@@ -103,15 +103,19 @@ if __name__ == '__main__':
                         help='which decision system to use for the team 2 default to strategy_triangle',
                         default='strategy_triangle',
                         type=str)
+    parser.add_argument('-c', '--color',
+                        help='chose color theme, possible values : dark, light',
+                        default='dark',
+                        type=str)
 
     args = parser.parse_args()
 
     main = Main(args.map_path, args.team1_decision_algo, args.team2_decision_algo)
     print(f'Playing on map {args.map_path}, with team1 using {args.team1_decision_algo} and team2 using {args.team2_decision_algo}')
-    for i in range(75):
+    for i in range(5):
         print('\riteration :', i, end='')
         start_time = time.time()
         main.cycle()
         if time.time() - start_time > 5:
             break
-    replay = CliReplay()
+    replay = CliReplay(args.color)
