@@ -7,6 +7,7 @@ from back.pacman_game import PacmanGame
 from utils.action import Action
 from utils.replay_logger import ReplayLogger
 from utils.direction import Direction
+from front.cli.theme_data import ThemeData
 
 
 class CliReplay():
@@ -15,11 +16,13 @@ class CliReplay():
     _map_path: str
     _steps: list[list[Action]]
     _comments: list[list[str]]
+    _theme: str
 
-    def __init__(self) -> None:
+    def __init__(self, theme: str) -> None:
         self._map_path, self._comments, self._steps = ReplayLogger().get_replay()
         self._game = PacmanGame()
         self._game.load_map(self._map_path)
+        self._theme = theme
 
         self._fancy_walls = [[]]
         self._step_count = 0
@@ -47,17 +50,12 @@ class CliReplay():
         # constants
         self._ESCAPE = ['q']
 
-        # colors
-        curses.init_color(250, 150, 150, 150)  # define gray
-
-        curses.init_pair(1, curses.COLOR_BLUE, 0)  # wall
-        curses.init_pair(2, 250, 0)  # dots
-        curses.init_pair(3, curses.COLOR_BLUE, 250)  # wall in perception team 1
-        curses.init_pair(4, curses.COLOR_CYAN, 0)  # dots in perception team 1
-        curses.init_pair(5, curses.COLOR_YELLOW, 0)  # pacman team 1
-        curses.init_pair(6, curses.COLOR_MAGENTA, 0)  # ghost team 1
-        curses.init_pair(7, curses.COLOR_YELLOW, curses.COLOR_RED)  # pacman team 2
-        curses.init_pair(8, curses.COLOR_RED, 0)  # ghost team 2
+        # theme
+        td = ThemeData()
+        if self._theme == 'light':
+            td.set_light_theme()
+        elif self._theme == 'dark':
+            td.set_dark_theme()
 
         # main loop
         self.main_loop()
@@ -95,6 +93,10 @@ class CliReplay():
                        Direction['NONE']: 'X'}
         char_ghost = 'ᗝ'
 
+        # background
+        for y in range(self._screenH):
+            self._screen.addstr(y, 0, ' ' * (self._screenW - 1), curses.color_pair(9))
+
         # board
         for x in range(len(board)):
             for y in range(len(board[0])):
@@ -124,7 +126,7 @@ class CliReplay():
         # comments
         y = 1
         for comment in comments:
-            self._screen.addstr(y, len(board) + 1, comment[:self._screenW - len(board)])
+            self._screen.addstr(y, len(board) + 1, comment[:self._screenW - len(board)], curses.color_pair(9))
 
             y += 1
             if y + 1 >= self._screenH:
