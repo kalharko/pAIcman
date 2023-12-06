@@ -14,10 +14,15 @@ from back.team import Team
 class PacmanBrain(Brain):
     _agentManager: AgentManager
     _already_visited: list[tuple[int, int]]
+    _last_cell_visited: tuple[int, int]
 
     def __init__(self, agent_manager):
         self._agentManager = agent_manager
         self._already_visited = None
+        self._last_visited = None
+
+        # hyper parameters
+        # TODO: hyper parameters
 
     def compute_action(self, strategy: Strategy, team: Team, agent_id: str) -> Action:
         """Decision-making of a pacman agent for a given strategy
@@ -62,6 +67,9 @@ class PacmanBrain(Brain):
         chosenDirection = None
         ReplayLogger().log_comment('\n' + agent_id)
         perception = team.get_perception()
+        opposite_dir = team.get_pacman().get_last_direction()
+        opposite_dir = Direction((opposite_dir.value[0] * -1, opposite_dir.value[1] * -1))
+        self._last_cell_visited = perception.get_board().get_next_cell(team.get_pacman().get_position(), opposite_dir)
         for direction in self.get_legal_move(perception, agent_id):  # TODO : shuffle the order of move
             self._already_visited = [team.get_pacman().get_position()]
             exploration_score = self.get_exploration_score(perception, agent_id, self.get_agent_position(agent_id), direction)
@@ -70,10 +78,11 @@ class PacmanBrain(Brain):
                 chosenDirection = direction
                 bestScore = exploration_score
 
+        print(chosenDirection)
         return Action(agent_id, chosenDirection)
 
     def get_exploration_score(self, perception: Perception, agent_id: str, position: (int, int), direction: Direction) -> float:
-        forgetting_rate = 0.5
+        forgetting_rate = 0.85
         next_cell = perception.get_board().get_next_cell(position, direction)
 
         # stop case 1 : if is next cell non-legal
@@ -86,20 +95,17 @@ class PacmanBrain(Brain):
 
         # stop case 2 : if is next cell non-visible
         elif perception.get_board().get_cell(next_cell) == Cell['UNKNOWN']:
-            return 0.25
-
-        # stop case 3 : if is next cell a pac gum
-        elif perception.get_board().get_cell(next_cell) == Cell['PAC_GUM']:
-            return 0.5
-
-        # stop case 4 : if is next cell a pac dot
-        elif perception.get_board().get_cell(next_cell) == Cell['PAC_DOT']:
-            return 1.0
+            return 1
 
         # recursive case : continue in  all other direction
         else:
-            
             score = 0
+            if perception.get_board().get_cell(next_cell) == Cell['PAC_GUM']:
+                score = -1
+            elif perception.get_board().get_cell(next_cell) == Cell['PAC_DOT']:
+                score = 1
+            if next_cell == self._last_cell_visited:
+                score = -2
             self._already_visited.append(copy.copy(next_cell))
             for direction in Direction:
                 score += self.get_exploration_score(perception, agent_id, next_cell, direction)
