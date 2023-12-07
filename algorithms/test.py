@@ -15,5 +15,6 @@ game.load_map('maps/collisions.txt')
 game.step([Action('Pa', Direction['RIGHT']), Action('Pb', Direction['UP'])])
 game.step([Action('Pa', Direction['RIGHT']), Action('Pb', Direction['UP'])])
 game.step([Action('Pa', Direction['LEFT']), Action('Pb', Direction['DOWN'])])
+game.step([Action('Pa', Direction['LEFT']), Action('Pb', Direction['DOWN'])])
 
 replay = CliReplay(game)
