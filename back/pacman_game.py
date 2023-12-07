@@ -84,10 +84,15 @@ class PacmanGame():
 
         # apply actions
         self._history.append(actions)
-        for action in actions:
+        #for action in actions:
+        i = 0
+        while (i < actions.__len__()):
+            action = actions[i]
+
             # See if we can apply the action
             if self._can_apply(action):
                 self._apply(action)
+                actions = actions[:actions.index(action)] + self.repercuting_actions(action, actions[actions.index(action):])
                 # Make a function to verify the repercussion of the other actions on this one since we are tile-based
 
             else:
@@ -98,6 +103,8 @@ class PacmanGame():
                     self._apply(last_action)
                 else:
                     continue  # TODO: Change behavior be cause redo the previous can cause issues
+
+            i += 1
 
         # TODO: check agent collisions
 
@@ -125,7 +132,7 @@ class PacmanGame():
             else:
                 pass
 
-    def repercuting_actions(self, currentAction: Action, allActions: list[Action]) -> None:
+    def repercuting_actions(self, currentAction: Action, allActions: list[Action]) -> list[Action]:
         """See which other actions have a repercussion on the on the agent making the action (like a ghost eating a pacman) and modify the necessary parameters
 
         :param currentAction: Action for which we want to see the impact
@@ -133,11 +140,16 @@ class PacmanGame():
 
         param allActions: list of all the agent's actions for this simulation step
         :type allActions: list[Action]
+
+        return list[Action]
         """
         # Get the current action's agent (currentAgent)
         currentAgent = self._agent_manager.get_agent(currentAction.id)
+        actionsToRemove = []
+        actionsToAdd = []
         for action in allActions:
-
+            print(action.direction)
+            print(action.direction.opposite())
             # Get the verified action's agent (actionAgent)
             actionAgent = self._agent_manager.get_agent(action.id)
 
@@ -145,15 +157,24 @@ class PacmanGame():
             if ((action != currentAction) and (actionAgent._alive) and (self._can_apply(action))):
 
                 # See if the actionAgent is next to currentAgent(orthogonally) and can have a repercussion on the agent
-                distanceAgents = currentAgent.get_position - actionAgent.get_position
+                distanceAgents = (currentAgent.get_position()[0] - actionAgent.get_position()[0], currentAgent.get_position()[1] - actionAgent.get_position()[1])
                 if ((distanceAgents[0] == 0) or (distanceAgents[1] == 0)):
                     # Verify if actions make the agents pass each other or puts them on the same space
-                    if (action.direction == (currentAction.direction * (-1)) or distanceAgents == (0, 0)):
+                    futureAgentPosition = (actionAgent.get_position()[0] + action.direction.value[0], actionAgent.get_position()[1] + action.direction.value[1])
+                    if ((currentAgent.get_position() == futureAgentPosition) or (distanceAgents == (0, 0))):
                         # The current agent is a pacman
                         if (isinstance(currentAgent, Pacman)):
                             # He is interacting with a pacman
                             if (isinstance(actionAgent, Pacman)):
-                                pass
+                                # Apply an opposing action that can be assimilated to a bounce
+                                oppositeCurrentAction = Action(currentAction.id, currentAction.direction.opposite())
+                                if (self._can_apply(oppositeCurrentAction)):
+                                    self._apply(oppositeCurrentAction)
+                                # Apply the bothering action and adding the opposing action to simulate the bounce
+                                self._apply(action)
+                                actionsToRemove.append(action)
+                                oppositeAction = Action(action.id, action.direction.opposite())
+                                actionsToAdd.append(oppositeAction)
                             # He is interacting with a ghost
                             elif (isinstance(actionAgent, Ghost)):
                                 currentAgent._alive = False
@@ -167,13 +188,26 @@ class PacmanGame():
                                 actionAgent._alive = False
                             # He is interacting with a ghost
                             elif (isinstance(actionAgent, Ghost)):
-                                pass
+                                # Apply an opposing action that can be assimilated to a bounce
+                                oppositeCurrentAction = Action(currentAction.id, currentAction.direction.opposite())
+                                if (self._can_apply(oppositeCurrentAction)):
+                                    self._apply(oppositeCurrentAction)
+                                # Apply the bothering action and adding the opposing action to simulate the bounce
+                                self._apply(action)
+                                actionsToRemove.append(action)
+                                oppositeAction = Action(action.id, action.direction.opposite())
+                                actionsToAdd.append(oppositeAction)
                             # WTF is he interacting with ?
                             else:
                                 print("Error ! Not authorized object making a movement !" + actionAgent.get_id)
                         # WTF is the current agent ?
                         else:
                             print("Error ! Not authordized object making a movement !" + currentAction.get_id)
+        # Remove all actions unneeded
+        for action in actionsToRemove:
+            allActions.remove(action)
+        allActions += actionsToAdd
+        return allActions
 
     def _can_apply(self, action: Action) -> bool:
         """Check if an agent's action can be applied
