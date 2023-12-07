@@ -77,11 +77,11 @@ class Brain():
             self._already_visited = [team.get_pacman().get_position()]
             exploration_score = self.get_exploration_score(perception, agent_id, self.get_agent_position(agent_id), direction)
             # ReplayLogger().log_comment(str(direction) + ' ' + str(exploration_score))
-            if bestScore == None or exploration_score >= bestScore:
+            if bestScore is None or exploration_score >= bestScore:
                 chosenDirection = direction
                 bestScore = exploration_score
 
-        #print(chosenDirection)
+        # print(chosenDirection)
         return Action(agent_id, chosenDirection)
 
     def get_exploration_score(self, perception: Perception, agent_id: str, position: (int, int), direction: Direction) -> float:
