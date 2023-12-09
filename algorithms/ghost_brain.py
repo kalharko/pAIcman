@@ -1,13 +1,9 @@
 import random
+
 from algorithms.brain import Brain
-from back.agent_manager import AgentManager
 from back.perception import Perception
-from back.team import Team
-from utils.direction import Direction
-from utils.strategy import Strategy
 from utils.action import Action
-from algorithms.a_star import AStar
-from back.team import Team
+from utils.direction import Direction
 
 
 class GhostBrain(Brain):
@@ -15,7 +11,7 @@ class GhostBrain(Brain):
         super().__init__(agent_manager)
 
         # define hyper parameters
-        self._EXPLORATION_FORGETHING_RATE = 0.5
+        self._EXPLORATION_FORGETING_RATE = 0.1
         self._EXPLORATION_PAC_GUM_SCORE = 0
         self._EXPLORATION_PAC_DOT_SCORE = 0
         self._EXPLORATION_UNKNOWN_CELL_SCORE = 1
@@ -24,7 +20,7 @@ class GhostBrain(Brain):
     def _defense(perception: Perception, agent_id: str) -> Action:
         """Give the best defensive action for the given agent
 
-        :param perception: the team perception that the ghost agent will use to make it's decision
+        :param perception: the team perception that the ghost agent will use to make its decision
         :type perception: Perception
         :param agent_id: id of the ghost agent
         :type agent_id: str

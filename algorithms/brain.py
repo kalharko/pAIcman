@@ -10,13 +10,14 @@ from back.cell import Cell
 from back.team import Team
 
 
-class Brain():
+
+class Brain:
     _agentManager: AgentManager
     _already_visited: list[tuple[int, int]]
     _last_cell_visited: tuple[int, int]
+
     # hyper parameters
-    # TODO: hyper parameters
-    _EXPLORATION_FORGETHING_RATE: float
+    _EXPLORATION_FORGETTING_RATE: float
     _EXPLORATION_PAC_GUM_SCORE: float
     _EXPLORATION_PAC_DOT_SCORE: float
     _EXPLORATION_UNKNOWN_CELL_SCORE: float
@@ -32,8 +33,8 @@ class Brain():
 
         :param strategy: strategy that the pacman agent will apply
         :type strategy: Strategy
-        :param perception: the team perception that the pacman agent will use to make its decision
-        :type perception: Perception
+        :param team: the team that the pacman agent will use to make its decision
+        :type team: Team
         :param agent_id: id of the pacman agent
         :type agent_id: str
         :return: the optimal action for the pacman agent for the given strategy
@@ -58,8 +59,8 @@ class Brain():
     def _exploration(self, team: Team, agent_id: str) -> Action:
         """Give the best exploration action for the given agent
 
-        :param perception: the team perception that the pacman agent will use to make its decision
-        :type perception: Perception
+        :param team: the team that the pacman agent will use to make its decision
+        :type team: Team
         :param agent_id: id of the pacman agent
         :type agent_id: str
         :return: the optimal exploration action for the given agent
@@ -77,14 +78,15 @@ class Brain():
             self._already_visited = [team.get_pacman().get_position()]
             exploration_score = self.get_exploration_score(perception, agent_id, self.get_agent_position(agent_id), direction)
             # ReplayLogger().log_comment(str(direction) + ' ' + str(exploration_score))
-            if bestScore == None or exploration_score >= bestScore:
+            if bestScore is None or exploration_score >= bestScore:
                 chosenDirection = direction
                 bestScore = exploration_score
 
-        #print(chosenDirection)
+        # print(chosenDirection)
         return Action(agent_id, chosenDirection)
 
-    def get_exploration_score(self, perception: Perception, agent_id: str, position: (int, int), direction: Direction) -> float:
+    def get_exploration_score(self, perception: Perception, agent_id: str, position: (int, int),
+                              direction: Direction) -> float:
         next_cell = perception.get_board().get_next_cell(position, direction)
 
         # stop case 1 : if is next cell non-legal
@@ -95,9 +97,13 @@ class Brain():
         elif next_cell in self._already_visited:
             return 0.0
 
-        # stop case 3 : if is next cell non-visible
+        # stop case 3 : if is next cell unknown
         elif perception.get_board().get_cell(next_cell) == Cell['UNKNOWN']:
             return self._EXPLORATION_UNKNOWN_CELL_SCORE
+
+        # stop case 4 : if the next cell is non-visible
+        elif next_cell not in perception.get_last_cells_seen():
+            return 0.0
 
         # recursive case : continue in  all other direction
         else:
@@ -112,10 +118,29 @@ class Brain():
             self._already_visited.append(copy.copy(next_cell))
             for direction in Direction:
                 score += self.get_exploration_score(perception, agent_id, next_cell, direction)
-            return score * self._EXPLORATION_FORGETHING_RATE
+            return score * self._EXPLORATION_FORGETTING_RATE
 
     def get_legal_move(self, perception: Perception, agent_id: str) -> list[Direction]:
+        """get the legal move that the agent can do
+        :param perception : the perception of the agent
+        :type perception : Perception
+
+        :param agent_id: the id of the agent we are working
+        :type : str
+
+        :return : the list of the legal direction
+        :rtype: list[Direction]
+        """
         return perception.get_board().get_legal_move(self.get_agent_position(agent_id))
 
     def get_agent_position(self, agent_id: str) -> (int, int):
+        """get the position of the agent
+
+        :param agent_id: the id of the agent we want the position
+        :type agent_id : str
+
+        :return: the position of the agent
+        :rtype : (int, int)
+        """
+
         return self._agentManager.get_agent(agent_id).get_position()
