@@ -5,9 +5,10 @@ from back.perception import Perception
 from utils.action import Action
 from utils.direction import Direction
 from utils.strategy import Strategy
-from utils.replay_logger import ReplayLogger
+# from utils.replay_logger import ReplayLogger
 from back.cell import Cell
 from back.team import Team
+
 
 
 class Brain:
@@ -68,16 +69,15 @@ class Brain:
 
         bestScore = None
         chosenDirection = None
-        ReplayLogger().log_comment('\n' + agent_id)
+        # ReplayLogger().log_comment('\n' + agent_id)
         perception = team.get_perception()
         opposite_dir = team.get_pacman().get_last_direction()
         opposite_dir = Direction((opposite_dir.value[0] * -1, opposite_dir.value[1] * -1))
         self._last_cell_visited = perception.get_board().get_next_cell(team.get_pacman().get_position(), opposite_dir)
         for direction in self.get_legal_move(perception, agent_id):  # TODO : shuffle the order of move
             self._already_visited = [team.get_pacman().get_position()]
-            exploration_score = self.get_exploration_score(perception, agent_id, self.get_agent_position(agent_id),
-                                                           direction)
-            ReplayLogger().log_comment(str(direction) + ' ' + str(exploration_score))
+            exploration_score = self.get_exploration_score(perception, agent_id, self.get_agent_position(agent_id), direction)
+            # ReplayLogger().log_comment(str(direction) + ' ' + str(exploration_score))
             if bestScore is None or exploration_score >= bestScore:
                 chosenDirection = direction
                 bestScore = exploration_score
