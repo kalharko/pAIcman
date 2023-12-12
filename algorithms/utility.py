@@ -7,6 +7,7 @@ from utils.action import Action
 from utils.direction import Direction
 from back.cell import Cell
 from algorithms.a_star import AStar
+from utils.replay_logger import ReplayLogger
 
 
 class Utility():
@@ -36,7 +37,7 @@ class Utility():
             positions = []
             for direction in self.directions:
                 new_pos = agent.try_move(direction)
-                if board.get_cell(new_pos[0], new_pos[1]) == Cell['WALL']:
+                if board.get_cell(new_pos) == Cell['WALL']:
                     continue
                 positions.append(copy.copy(new_pos))
             possible_positions[agent.get_id()] = copy.deepcopy(positions)
@@ -58,7 +59,7 @@ class Utility():
                     if not (0 <= x < board_width and 0 <= y < board_height):
                         continue
                     # quit if is an illegal position
-                    if board.get_cell(x, y) == Cell['WALL']:
+                    if board.get_cell((x, y)) == Cell['WALL']:
                         continue
                     # second, more precise check of distance
                     if astar.distance((x, y), (og_x, og_y)) > how_long_ago:
@@ -125,8 +126,8 @@ class Utility():
         # - other team's agent danger level
 
         # general data
-        board = team.get_perception().get_board()
-        width, height = board.get_size()
+        perception = team.get_perception()
+        board = perception.get_board()
         team_ids = list(team.get_ids())
         flood_fill = FloodFill(board)
         a_star = AStar(board)
@@ -136,16 +137,28 @@ class Utility():
         min_dist_to_score = flood_fill.closest_cell(pacman_pos[0], pacman_pos[1], Cell['PAC_DOT'])
 
         # distance to unknown cell
-        # min_dist_to_unknown = []
-        # for id, position in zip(all_ids, positions):
-        #     if id not in team_ids:
-        #         continue
-        #     min_dist_to_unknown.append(flood_fill.closest_cell(position[0], position[1], Cell['UNKNOWN']))
+        min_dist_to_unknown = []
+        for id, position in zip(all_ids, positions):
+            if id not in team_ids:
+                continue
+            min_dist_to_unknown.append(flood_fill.closest_cell(position[0], position[1], Cell['UNKNOWN']))
 
         # team's danger level
-        # TODO
+        danger = 0
+        other_team_danger = 0
+        for _, enemy_ghost in perception.get_ghost_sightings():
+            if enemy_ghost.is_vulnerable():
+                other_team_danger += a_star.distance(team.get_pacman().get_position(), enemy_ghost.get_position())
+            else:
+                danger += a_star.distance(team.get_pacman().get_position(), enemy_ghost.get_position())
 
-        # other team's agent danger level
-        # TODO
+        pacman_sighting = perception.get_pacman_sighting()
+        if pacman_sighting != []:
+            enemy_pacman = pacman_sighting[0][1]
+            for ghost in team.get_ghosts():
+                if ghost.is_vulnerable():
+                    danger += a_star.distance(enemy_pacman.get_position(), ghost.get_position())
+                else:
+                    other_team_danger += a_star.distance(enemy_pacman.get_position(), ghost.get_position())
 
-        return 1 / (1 + min_dist_to_score)  # + len(min_dist_to_unknown) / sum(min_dist_to_unknown)
+        return -min_dist_to_score / 30 - min(min_dist_to_unknown) / 30 - danger / 90 + other_team_danger / 90

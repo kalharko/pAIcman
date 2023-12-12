@@ -1,7 +1,8 @@
 from back.cell import Cell
+from utils.direction import Direction
 
 
-class Board():
+class Board:
     """Class storing the description of a pacman's board
     """
     _cells: list[list[Cell]]
@@ -29,16 +30,17 @@ class Board():
         self._height = len(self._cells[0])
         self._width = len(self._cells)
 
-    def set_cell(self, x: int, y: int, value: Cell) -> None:
+    def set_cell(self, position: (int, int), value: Cell) -> None:
         """Set a cell's value
 
-        :param x: x position of the cell to set
-        :type x: int
-        :param y: y position of the cell to set
-        :type y: int
+        :param position: position of the cell to set
+        :type position: (int, int)
         :param value: value to set
         :type value: Cell
         """
+
+        x = position[0]
+        y = position[1]
         assert isinstance(x, int)
         assert isinstance(y, int)
         assert 0 <= x < self._width
@@ -47,16 +49,16 @@ class Board():
 
         self._cells[x][y] = value
 
-    def get_cell(self, x: int, y: int) -> Cell:
+    def get_cell(self, position: tuple[int, int]) -> Cell:
         """Get a cell's value
 
-        :param x: x position of the cell to get
-        :type x: int
-        :param y: y position of the cell to get
-        :type y: int
+        :param position : the position of the cell we want
+        :type position: (int, int)
         :return: cell's value
         :rtype: Cell
         """
+
+        x, y = position
         assert isinstance(x, int)
         assert isinstance(y, int)
         assert 0 <= x < self._width
@@ -64,16 +66,17 @@ class Board():
 
         return self._cells[x][y]
 
-    def get_cell_neighbors(self, x: int, y: int) -> list[Cell]:
+    def get_cell_neighbors(self, position) -> list[Cell]:
         """Get a cell's neighbors
 
-        :param x: x position of the cell whose neighbors we want
-        :type x: int
-        :param y: y position of the cell whose neighbors we want
-        :type y: int
+        :param position: position of the cell whose neighbors we want
+        :type position: (int, int)
         :return: list of the positions of the cell's neighbors
         :rtype: list[Cell]
         """
+
+        x = position[0]
+        y = position[1]
         assert isinstance(x, int)
         assert isinstance(y, int)
         assert 0 <= x < self._width
@@ -83,6 +86,25 @@ class Board():
         for dx, dy in ((-1, 0), (0, -1), (1, 0), (0, -1)):
             out.append(self._cells[x + dx][y + dy])
         return out
+
+    def get_next_cell(self, position: tuple[int, int], direction: Direction) -> tuple[int, int]:
+        """Get the next after moving in a certain direction
+
+        :param position: position of the cell whose neighbors we want
+        :type position: (int, int)
+        :param direction : the direction where we move
+        :type direction : Direction
+        :return : the cell where we arrive after moving in the direction
+        :rtype : Cell
+        """
+        x = position[0]
+        y = position[1]
+        assert isinstance(x, int)
+        assert isinstance(y, int)
+        assert 0 <= x < self._width
+        assert 0 <= y < self._height
+
+        return (x + direction.value[0], y + direction.value[1])
 
     def get_all(self) -> list[list[Cell]]:
         """Get the full description of the board
@@ -100,14 +122,34 @@ class Board():
         """
         return (self._width, self._height)
 
+    def get_legal_move(self, position: (int, int)) -> list[Direction]:
+        """
+        Get all the move that the agent is able to do in a given position (x, y)
+
+        :param position: position of the cell we are
+        :type position: (int, int)
+
+        :return: list of the direction we can move
+        :rtype: list[Direction]
+        """
+
+        legal_move = []
+        x = position[0]
+        y = position[1]
+
+        for direction in Direction:
+            if direction == Direction['NONE']:
+                continue
+            if self.get_cell(self.get_next_cell((x, y), direction)).is_movable():
+                legal_move.append(direction)
+        return legal_move
+
     def __str__(self) -> str:
         translation = {
             Cell['EMPTY']: ' ',
             Cell['WALL']: '#',
-            Cell['DOOR']: '_',
             Cell['PAC_DOT']: '.',
             Cell['PAC_GUM']: 'o',
-            Cell['PIPE']: 'P',
             Cell['UNKNOWN']: '~'
         }
         out = ''

@@ -17,7 +17,6 @@ class PacmanGame():
     _board_manager: BoardManager
     _agent_manager: AgentManager
     _path_board: str
-    _history: list[list[Action]]
 
     def __init__(self) -> None:
         """PacmanGame's initialization
@@ -85,11 +84,7 @@ class PacmanGame():
         # apply actions
         self._history.append(actions)
         #for action in actions:
-        i = 0
-        while (i < actions.__len__()):
-            action = actions[i]
-
-            # See if we can apply the action
+        for action in actions:
             if self._can_apply(action):
                 self._apply(action)
                 actions = actions[:actions.index(action)] + self.repercuting_actions(action, actions[actions.index(action):])
@@ -103,8 +98,6 @@ class PacmanGame():
                     self._apply(last_action)
                 else:
                     continue  # TODO: Change behavior be cause redo the previous can cause issues
-
-            i += 1
 
         # TODO: check agent collisions
 
@@ -148,8 +141,6 @@ class PacmanGame():
         actionsToRemove = []
         actionsToAdd = []
         for action in allActions:
-            print(action.direction)
-            print(action.direction.opposite())
             # Get the verified action's agent (actionAgent)
             actionAgent = self._agent_manager.get_agent(action.id)
 
@@ -255,7 +246,15 @@ class PacmanGame():
         self._agent_manager.reset()
         self._board_manager.reset()
 
-    def get_history(self) -> None:
-        """Get the history of all the actions given during the game
+    def get_teams(self) -> None:
+        """Get the game's teams
         """
-        return self._history
+        return self._agent_manager.get_teams()
+
+    def get_agent_manager(self) -> AgentManager:
+        """
+        Get the agent manager of the game
+        :return: the agent manager
+        :rtype : AgentManager
+        """
+        return self._agent_manager

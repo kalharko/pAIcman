@@ -6,6 +6,7 @@ class Direction(Enum):
     RIGHT = (1, 0)
     DOWN = (0, 1)
     LEFT = (-1, 0)
+    NONE = (0, 0)
 
     def opposite(self):
         match self:

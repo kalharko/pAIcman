@@ -6,15 +6,31 @@ from utils.direction import Direction
 from utils.action import Action
 from back.pacman import Pacman
 from back.ghost import Ghost
+from utils.replay_logger import ReplayLogger
+
 
 from front.cli.cli_replay import CliReplay
 
+game_map = 'maps/collisions.txt'
 
 game = PacmanGame()
-game.load_map('maps/collisions.txt')
-game.step([Action('Pa', Direction['RIGHT']), Action('Pb', Direction['UP'])])
-game.step([Action('Pa', Direction['RIGHT']), Action('Pb', Direction['UP'])])
-game.step([Action('Pa', Direction['LEFT']), Action('Pb', Direction['DOWN'])])
-game.step([Action('Pa', Direction['LEFT']), Action('Pb', Direction['DOWN'])])
+game.load_map(game_map)
+ReplayLogger().log_map(game_map)
 
-replay = CliReplay(game)
+actions = [Action('Pa', Direction['RIGHT']), Action('Pb', Direction['UP'])]
+game.step(actions)
+ReplayLogger().log_step(actions)
+
+actions = [Action('Pa', Direction['RIGHT']), Action('Pb', Direction['UP'])]
+game.step(actions)
+ReplayLogger().log_step(actions)
+
+actions = [Action('Pa', Direction['LEFT']), Action('Pb', Direction['DOWN'])]
+game.step(actions)
+ReplayLogger().log_step(actions)
+
+actions = [Action('Pa', Direction['LEFT']), Action('Pb', Direction['DOWN'])]
+game.step(actions)
+ReplayLogger().log_step(actions)
+
+replay = CliReplay('dark')

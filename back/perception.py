@@ -66,11 +66,12 @@ class Perception():
         other_board = other.get_board()
         for x in range(width):
             for y in range(height):
-                if other_board.get_cell(x, y) == Cell['UNKNOWN']:
+                if other_board.get_cell((x, y)) == Cell['UNKNOWN']:
                     continue
                 if (x, y) not in self._last_cell_seen:
                     self._last_cell_seen.append((x, y))
-                self._board.set_cell(x, y, other_board.get_cell(x, y))
+
+                self._board.set_cell((x, y), other_board.get_cell((x, y)))
         # update Pacman seen
         sighting = other.get_pacman_sighting()
         if len(sighting) > 0 and sighting[0][0] == 0:
@@ -87,6 +88,14 @@ class Perception():
         :rtype: Board
         """
         return self._board
+
+    def get_last_cells_seen(self) -> list[tuple[int]]:
+        """returns the list of positions of the last cells seen by the team
+
+        :return: list of positions
+        :rtype: list[tuple[int]]
+        """
+        return self._last_cell_seen
 
     def get_sightings(self) -> list[list[int, Agent]]:
         """Get the perception's sighting of ghosts and pacman combined
@@ -132,6 +141,14 @@ class Perception():
         :rtype: list[str]
         """
         return [sighting[1].get_id() for sighting in self.get_sightings()]
+
+    def get_ghost_ids(self) -> list[str]:
+        """Get the ids of the ghost that have been seen
+
+        :return: list of ids
+        :rtype: list[str]
+        """
+        return [sighting[1].get_id() for sighting in self.get_ghost_sightings()]
 
     def __str__(self) -> str:
         out = str(self._board)

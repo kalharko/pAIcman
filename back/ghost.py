@@ -5,7 +5,7 @@ from back.agent import Agent
 class Ghost(Agent):
     """Class describing a ghost agent
     """
-    _panic: bool
+    _vulnerability: bool
 
     def __init__(self, team: int, id: str, x: int, y: int) -> None:
         """Ghost initialization
@@ -20,22 +20,22 @@ class Ghost(Agent):
         :type y: int
         """
         super().__init__(team, id, x, y)
-        self._panic = False
+        self._vulnerability = False
 
-    def get_panic(self) -> None:
+    def is_vulnerable(self) -> bool:
         """Get the ghost's panic state
 
         :return: ghost's panic state
         :rtype: _type_
         """
-        return self._panic
+        return self._vulnerability
 
-    def set_panic(self, state: bool) -> None:
-        """Set the ghost's panic state
+    def set_vulnerability(self, state: bool) -> None:
+        """Set the ghost's vulnerability state
 
         :param state: True if the ghost is panicking, False if not
         :type state: bool
         """
         assert isinstance(state, bool)
 
-        self._panic = state
+        self._vulnerability = state
