@@ -83,23 +83,22 @@ class PacmanGame():
 
         # apply actions
         self._history.append(actions)
-        #for action in actions:
         for action in actions:
             if self._can_apply(action):
                 self._apply(action)
+                # See the repercussions of the action on the others and adding the modified actions
                 actions = actions[:actions.index(action)] + self.repercuting_actions(action, actions[actions.index(action):])
-                # Make a function to verify the repercussion of the other actions on this one since we are tile-based
-
             else:
                 # if action is invalid, will try to redo last action
-                agent = self._agent_manager.get_agent(action.id)
-                last_action = Action(action.id, agent.get_last_direction())
-                if self._can_apply(last_action):
-                    self._apply(last_action)
-                else:
-                    continue  # TODO: Change behavior be cause redo the previous can cause issues
+                # agent = self._agent_manager.get_agent(action.id)
+                # last_action = Action(action.id, agent.get_last_direction())
+                # if self._can_apply(last_action):
+                #    self._apply(last_action)
+                # else:
+                #    continue  # TODO: Change behavior be cause redo the previous can cause issues
 
-        # TODO: check agent collisions
+                # If action is invalid, does nothing, may be the best action to avoid breaking the game
+                continue
 
         # update team's perception
         self._agent_manager.update_perceptions(self._board_manager)
