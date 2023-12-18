@@ -30,6 +30,21 @@ class Board:
         self._height = len(self._cells[0])
         self._width = len(self._cells)
 
+    def plot_board(self):
+        """Plot the board using matplotlib
+        """
+        x_coords = []
+        y_coords = []
+        for x in range(self._width):
+            for y in range(self._height):
+                current_position = (x, y)
+                current_cell = self.get_cell(current_position)
+                if current_cell not in [Cell.WALL, Cell.UNKNOWN]:
+                    x_coords.append(current_position[0])
+                    y_coords.append(current_position[1])
+        plt.plot(x_coords, y_coords, 'ro')
+        plt.show()
+
     def set_cell(self, position: (int, int), value: Cell) -> None:
         """Set a cell's value
 
