@@ -2,6 +2,8 @@ from queue import PriorityQueue
 from back.board import Board
 from back.cell import Cell
 from utils.direction import Direction
+
+#Optional, but required for graph testing
 import matplotlib.pyplot as plt
 import networkx as nx
 import scipy.sparse
@@ -16,6 +18,7 @@ class Dijkstra:
 
         self.board = board
 
+    #Convert board to graph with each entry representing a cell and its neighbours
     def board_to_graph(self):
         graph = {}
         width, height = self.board.get_size()
@@ -38,11 +41,13 @@ class Dijkstra:
                                 graph[current_position].append(neighbor_position)  # Assuming the weight is 1 for now
                                 
         return graph
-    
+
+    #Plot a graph of the cells and their relations, 
+    #moved from NetworkX to a plot for readability as NetworkX is too busy
     def plot_graph(self, graph): #plot using matplotlib
         x_coords = []
         y_coords = []
-        for case in graph: #Add city to coordinates
+        for case in graph: #Add case to coordinates
             x_coords.append(case[0])
             y_coords.append(case[1])
         #show links between cells
@@ -51,11 +56,14 @@ class Dijkstra:
                 plt.plot([case[0], neighbor[0]], [case[1], neighbor[1]], 'b-')
         plt.show()
 
-
+    #Returns cell neighbours
     def get_neighbors(self, graph, cell):
         print(graph[cell])
         return graph[cell]
 
+    #Uses distance to return a path, 
+    #go from the end to get closer cells and eventually the start node, 
+    #then reverse the obtained path.
     def find_shortest_path(self, graph, distances, start, end):
         shortest_path = []
         current_vertex = end
@@ -73,13 +81,16 @@ class Dijkstra:
         shortest_path.append(start)
         shortest_path.reverse()
         return shortest_path
-    
+
+    #Dijkstra Algorithm to determine distance from starting cell.
+    #Needs to be tested further as the board tested was behaving strangely
     def dijkstra_algorithm(self, graph, start, end):
         # Initialize distances dictionary with infinity for all nodes except start
         distances = {vertex: float('infinity') for vertex in graph}
         distances[start] = 0
-
-        # Priority queue to keep track of vertices with their distances
+        distance = 1
+        
+        # Priority queue to keep track of cells with their distances
         priority_queue = PriorityQueue()
         priority_queue.put((0, start))
 
@@ -90,19 +101,21 @@ class Dijkstra:
                 continue
 
             for neighbor in graph[current_vertex]:
-                distance = 1  # Assuming the weight is 1 for now
                 new_distance = distances[current_vertex] + distance
 
                 if new_distance < distances[neighbor]:
                     distances[neighbor] = new_distance
                     priority_queue.put((new_distance, neighbor))
         return distances
-    
+
+    #Probably not useful as getting the distance should be done from the distance structure directly
+    #Rather than causing an additional call to the djikstra method, which is costly.
     def get_distance(self, start_position: tuple[int, int], end_position: tuple[int, int]):
         graph = self.board_to_graph()
         distances = self.dijkstra_algorithm(graph, start_position)
         return distances[end_position]
-        
+
+    #Main Method to be used.
     def apply_dijkstra(self, start_position: tuple[int, int], end_position: tuple[int, int]):
         graph = self.board_to_graph()
         self.board.plot_board()
