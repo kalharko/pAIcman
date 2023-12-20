@@ -93,33 +93,25 @@ class BoardManager():
 
         self._board.set_cell(position, cell)
 
-    # Get all the collisions on the board
-    def get_collisions(self, agents: tuple[Agent]) -> list[tuple[str, str]]:
+    def get_collisions(self, agent: Agent) -> tuple[str]:
+        """Get the board collisions for an agent
+
+        :param agent: agent for which we want to get the collisions
+        :type agent: Agent
+
+        :return: tuple of the agents collisions
+        :rtype: tuple
         """
-        TODO : william will overwrite this non functioning function
-        """
-        assert isinstance(agents, tuple)
-        assert len(agents) > 0
-        assert isinstance(agents[0], Agent)
 
-        out = []
-        for agent in agents:
-            collisions = []
-            # collision with cell content
-            if (cell := self.get_cell(agent.get_position())) != Cell['EMPTY']:
-                collisions.append(cell)
+        assert isinstance(agent, Agent)
 
-            # collision with other agents
-            for other_agent in agents:
-                if other_agent == agent:
-                    continue
-                if agent.get_position() == other_agent.get_position():
-                    collisions.append((other_agent.get_id()))
+        collisions = []
 
-            for col in collisions:
-                if (col, agent.get_id()) not in out:
-                    out.append((agent.get_id(), col))
-        return out
+        # collision with cell content
+        if (cell := self.get_cell(agent.get_position())) != Cell['EMPTY']:
+            collisions.append(cell)
+
+        return collisions
 
     def get_vision(self, agent: Agent, other_team_agents: tuple[Agent]) -> Perception:
         """Get agent's vision

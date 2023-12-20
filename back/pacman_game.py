@@ -3,6 +3,7 @@ from back.agent_manager import AgentManager
 from back.agent import Agent
 from back.team import Team
 from utils.action import Action
+from utils.direction import Direction
 from back.errors import PacErrAgentInWall
 from back.cell import Cell
 from back.pacman import Pacman
@@ -83,11 +84,30 @@ class PacmanGame():
 
         # apply actions
         self._history.append(actions)
-        for action in actions:
+
+        actionIterator = 0
+        while (actionIterator < len(actions)):
+            action = actions[actionIterator]
             if self._can_apply(action):
                 self._apply(action)
                 # See the repercussions of the action on the others and adding the modified actions
                 actions = actions[:actions.index(action)] + self.repercuting_actions(action, actions[actions.index(action):])
+
+                # Verify collisions with board
+                agent = self._agent_manager.get_agent(action.id)
+                collisions = self._board_manager.get_collisions(agent)
+                # collision with cell
+                for col in collisions:
+                    if isinstance(col, Cell):
+                        if isinstance(agent, Pacman):
+                            if col == Cell['WALL']:
+                                return PacErrAgentInWall(col)
+                            elif col == Cell['PAC_DOT']:
+                                agent.add_score(5)
+                                self._board_manager.set_cell(agent.get_position(), Cell['EMPTY'])
+                            elif col == Cell['PAC_GUM']:
+                                agent.eat_pacgum()
+                                self._board_manager.set_cell(agent.get_position(), Cell['EMPTY'])
             else:
                 # if action is invalid, will try to redo last action
                 # agent = self._agent_manager.get_agent(action.id)
@@ -98,31 +118,30 @@ class PacmanGame():
                 #    continue  # TODO: Change behavior be cause redo the previous can cause issues
 
                 # If action is invalid, does nothing, may be the best action to avoid breaking the game
-                continue
+                pass
+
+            actionIterator += 1
 
         # update team's perception
         self._agent_manager.update_perceptions(self._board_manager)
 
-        # check collision
-        collisions = self._board_manager.get_collisions(self._agent_manager.get_all_agents())
-
-        for col in collisions:
-            agent = self._agent_manager.get_agent(col[0])
-
-            # collision with cell
-            if isinstance(col[1], Cell):
-                if isinstance(agent, Pacman):
-                    if col[1] == Cell['WALL']:
-                        return PacErrAgentInWall(col)
-                    elif col[1] == Cell['PAC_DOT']:
-                        agent.add_score(5)
-                        self._board_manager.set_cell(agent.get_position(), Cell['EMPTY'])
-                    elif col[1] == Cell['PAC_GUM']:
-                        continue  # TODO: Pac Gum behavior
-
-            # collision with agent
-            else:
-                pass
+        ## check collision
+        #collisions = self._board_manager.get_collisions(self._agent_manager.get_all_agents())
+        #for col in collisions:
+        #    agent = self._agent_manager.get_agent(col[0])
+        #    # collision with cell
+        #    if isinstance(col[1], Cell):
+        #        if isinstance(agent, Pacman):
+        #            if col[1] == Cell['WALL']:
+        #                return PacErrAgentInWall(col)
+        #            elif col[1] == Cell['PAC_DOT']:
+        #                agent.add_score(5)
+        #                self._board_manager.set_cell(agent.get_position(), Cell['EMPTY'])
+        #            elif col[1] == Cell['PAC_GUM']:
+        #                agent.eat_pacgum()
+        #    # collision with agent
+        #    else:
+        #        pass
 
     def repercuting_actions(self, currentAction: Action, allActions: list[Action]) -> list[Action]:
         """See which other actions have a repercussion on the on the agent making the action (like a ghost eating a pacman) and modify the necessary parameters
@@ -167,15 +186,25 @@ class PacmanGame():
                                 actionsToAdd.append(oppositeAction)
                             # He is interacting with a ghost
                             elif (isinstance(actionAgent, Ghost)):
-                                currentAgent._alive = False
+                                if currentAgent.is_invicible():
+                                    actionAgent.die()
+                                    actionsToAdd.append(Action(actionAgent.get_id(), Direction.RESPAWN))
+                                else:
+                                    currentAgent.die()
+                                    actionsToAdd.append(Action(currentAction.get_id(), Direction.RESPAWN))
                             # WTF is he interacting with ?
                             else:
-                                print("Error ! Not authorized object making a movement !" + actionAgent.get_id)
+                                print("Error ! Not authorized object making a movement !" + actionAgent.get_id())
                         # The current agent is a Ghost
                         elif (isinstance(currentAgent, Ghost)):
                             # He is interacting with a pacman
                             if (isinstance(actionAgent, Pacman)):
-                                actionAgent._alive = False
+                                if actionAgent.is_invicible():
+                                    currentAgent.die()
+                                    actionsToAdd.append(Action(currentAction.get_id(), Direction.RESPAWN))
+                                else:
+                                    actionAgent.die()
+                                    actionsToAdd.append(Action(actionAgent.get_id(), Direction.RESPAWN))
                             # He is interacting with a ghost
                             elif (isinstance(actionAgent, Ghost)):
                                 # Apply an opposing action that can be assimilated to a bounce
@@ -189,10 +218,10 @@ class PacmanGame():
                                 actionsToAdd.append(oppositeAction)
                             # WTF is he interacting with ?
                             else:
-                                print("Error ! Not authorized object making a movement !" + actionAgent.get_id)
+                                print("Error ! Not authorized object making a movement !" + actionAgent.get_id())
                         # WTF is the current agent ?
                         else:
-                            print("Error ! Not authordized object making a movement !" + currentAction.get_id)
+                            print("Error ! Not authordized object making a movement !" + currentAction.get_id())
         # Remove all actions unneeded
         for action in actionsToRemove:
             allActions.remove(action)
@@ -229,7 +258,13 @@ class PacmanGame():
         assert isinstance(action, Action)
 
         agent = self._agent_manager.get_agent(action.id)
-        agent.move(action.direction)
+        # See i f the resoawn is direct or not
+        # if action.direction == Direction.NONE:
+        #    pass
+        if action.direction == Direction.RESPAWN:
+            agent.respawn()
+        else:
+            agent.move(action.direction)
 
     def get_board_size(self) -> tuple[int, int]:
         """Get the game's board size

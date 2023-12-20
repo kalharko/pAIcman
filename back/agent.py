@@ -165,5 +165,10 @@ class Agent():
         """
         return self._y
 
+    def die(self) -> None:
+        """Kill the agent
+        """
+        self._alive = False
+
     def __str__(self) -> str:
         return f'{self._id} : {self.get_position()}'

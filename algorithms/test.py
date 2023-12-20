@@ -8,7 +8,6 @@ from back.pacman import Pacman
 from back.ghost import Ghost
 from utils.replay_logger import ReplayLogger
 
-
 from front.cli.cli_replay import CliReplay
 
 game_map = 'maps/collisions.txt'
