@@ -47,8 +47,10 @@ class Main():
         # other
         self.utility = Utility()
 
-    def cycle(self):
+    def cycle(self) -> bool:
         """Simulation cycle that adapts to the decision system specified at the creation of the class
+        :return: True if the game is not over, False if it is
+        :rtype: bool
         """
         # gather team's informations
         team_a, team_b = self.environment.gather_state()
@@ -86,6 +88,8 @@ class Main():
         self.environment.step(actions)
         # save for replay
         ReplayLogger().log_step(actions)
+        # return wether the game is over or not
+        return not self.environment.is_game_over()
 
 
 if __name__ == '__main__':
@@ -112,10 +116,12 @@ if __name__ == '__main__':
 
     main = Main(args.map_path, args.team1_decision_algo, args.team2_decision_algo)
     print(f'Playing on map {args.map_path}, with team1 using {args.team1_decision_algo} and team2 using {args.team2_decision_algo}')
-    for i in range(5):
+    i = 0
+    while True:
         print('\riteration :', i, end='')
-        start_time = time.time()
-        main.cycle()
-        if time.time() - start_time > 5:
+        if not main.cycle():
             break
+        i += 1
+    print()
+
     replay = CliReplay(args.color)

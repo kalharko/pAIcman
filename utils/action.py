@@ -14,3 +14,6 @@ class Action():
 
     def __str__(self) -> str:
         return f'({self.id}, {self.direction})'
+
+    def get_id(self) -> str:
+        return self.id
