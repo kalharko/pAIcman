@@ -164,3 +164,15 @@ class BoardManager():
         """Reset the board to it's initial state
         """
         self._board = copy.deepcopy(self._initial_board)
+
+    def is_game_over(self) -> bool:
+        """Check if the game is over
+
+        :return: True if the game is over, False if it is not
+        :rtype: bool
+        """
+        for y in range(self._board.get_size()[1]):
+            for x in range(self._board.get_size()[0]):
+                if self._board.get_cell((x, y)) == Cell['PAC_DOT']:
+                    return False
+        return True

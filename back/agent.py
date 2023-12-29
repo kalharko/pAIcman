@@ -170,5 +170,13 @@ class Agent():
         """
         self._alive = False
 
+    def is_alive(self) -> bool:
+        """Check if the agent is alive
+
+        :return: True if the agent is alive, False if not
+        :rtype: bool
+        """
+        return self._alive
+
     def __str__(self) -> str:
         return f'{self._id} : {self.get_position()}'

@@ -18,6 +18,7 @@ class PacmanGame():
     _board_manager: BoardManager
     _agent_manager: AgentManager
     _path_board: str
+    _is_game_over: bool
 
     def __init__(self) -> None:
         """PacmanGame's initialization
@@ -26,6 +27,7 @@ class PacmanGame():
         self._agent_manager = AgentManager()
         self._path_board = None
         self._history = []
+        self._is_game_over = False
 
     def load_map(self, path: str) -> None:
         """Load a pacman map from a file path
@@ -292,3 +294,20 @@ class PacmanGame():
         :rtype : AgentManager
         """
         return self._agent_manager
+
+    def is_game_over(self) -> bool:
+        """Check if the game is over
+
+        :return: True if the game is over, False if not
+        :rtype: bool
+        """
+        if self._is_game_over is True:
+            return True
+
+        # check if the game is over
+        if self._board_manager.is_game_over() is True:
+            self._is_game_over = True
+        if self._agent_manager.is_game_over() is True:
+            self._is_game_over = True
+
+        return self._is_game_over
