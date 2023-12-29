@@ -12,6 +12,10 @@ class Agent():
     _last_direction: Direction
     _score: int
     _team: int
+    # Is the agent alive
+    _alive: bool
+    # Number of steps before the agent respawns
+    _respawn_time: int
 
     def __init__(self, team: int, id: str, x: int, y: int) -> None:
         """Agent's initialization
@@ -39,6 +43,8 @@ class Agent():
         self._last_direction = Direction['UP']
         self._score = 0
         self._team = team
+        self._alive = True
+        self._respawn_time = 8
 
     def get_position(self) -> tuple[int, int]:
         """Get agent's position
@@ -158,6 +164,19 @@ class Agent():
         :rtype: int
         """
         return self._y
+
+    def die(self) -> None:
+        """Kill the agent
+        """
+        self._alive = False
+
+    def is_alive(self) -> bool:
+        """Check if the agent is alive
+
+        :return: True if the agent is alive, False if not
+        :rtype: bool
+        """
+        return self._alive
 
     def __str__(self) -> str:
         return f'{self._id} : {self.get_position()}'

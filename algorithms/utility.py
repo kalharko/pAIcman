@@ -7,6 +7,7 @@ from utils.action import Action
 from utils.direction import Direction
 from back.cell import Cell
 from algorithms.a_star import AStar
+from utils.replay_logger import ReplayLogger
 
 
 class Utility():
@@ -58,7 +59,7 @@ class Utility():
                     if not (0 <= x < board_width and 0 <= y < board_height):
                         continue
                     # quit if is an illegal position
-                    if board.get_cell((x, y)) in (Cell['WALL']):
+                    if board.get_cell((x, y)) == Cell['WALL']:
                         continue
                     # second, more precise check of distance
                     if astar.distance((x, y), (og_x, og_y)) > how_long_ago:

@@ -6,7 +6,9 @@ from algorithms.ghost_brain import GhostBrain
 from utils.strategy import Strategy
 from front.cli.cli_replay import CliReplay
 from argparse import ArgumentParser
+from utils.replay_logger import ReplayLogger
 import time
+import random
 
 
 class Main():
@@ -36,6 +38,7 @@ class Main():
         # set up environment
         self.environment = PacmanGame()
         self.environment.load_map(map_path)
+        ReplayLogger().log_map(map_path)
 
         # brains
         self.brain_ghost = GhostBrain(self.environment.get_agent_manager())
@@ -44,8 +47,10 @@ class Main():
         # other
         self.utility = Utility()
 
-    def cycle(self):
+    def cycle(self) -> bool:
         """Simulation cycle that adapts to the decision system specified at the creation of the class
+        :return: True if the game is not over, False if it is
+        :rtype: bool
         """
         # gather team's informations
         team_a, team_b = self.environment.gather_state()
@@ -59,9 +64,9 @@ class Main():
             strat_team_b = ((agent, Strategy['RANDOM']) for agent in team_b.get_agents())
             for agent, strat in strat_team_b:
                 if isinstance(agent, Pacman):
-                    actions.append(self.brain_pacman.compute_action(strat, team_b.get_perception(), agent.get_id()))
+                    actions.append(self.brain_pacman.compute_action(strat, team_b, agent.get_id()))
                 else:
-                    actions.append(self.brain_ghost.compute_action(strat, team_b.get_perception(), agent.get_id()))
+                    actions.append(self.brain_ghost.compute_action(strat, team_b, agent.get_id()))
         elif self.scenario == 1:  # utility vs utility
             actions = self.utility.run(team_a)
             actions += self.utility.run(team_b)
@@ -70,17 +75,21 @@ class Main():
             strat_team_b = ((agent, Strategy['EXPLORATION']) for agent in team_b.get_agents())
             for agent, strat in strat_team_a:
                 if isinstance(agent, Pacman):
-                    actions.append(self.brain_pacman.compute_action(strat, team_a.get_perception(), agent.get_id()))
+                    actions.append(self.brain_pacman.compute_action(strat, team_a, agent.get_id()))
                 else:
-                    actions.append(self.brain_ghost.compute_action(strat, team_a.get_perception(), agent.get_id()))
+                    actions.append(self.brain_ghost.compute_action(strat, team_a, agent.get_id()))
             for agent, strat in strat_team_b:
                 if isinstance(agent, Pacman):
-                    actions.append(self.brain_pacman.compute_action(strat, team_b.get_perception(), agent.get_id()))
+                    actions.append(self.brain_pacman.compute_action(strat, team_b, agent.get_id()))
                 else:
-                    actions.append(self.brain_ghost.compute_action(strat, team_b.get_perception(), agent.get_id()))
+                    actions.append(self.brain_ghost.compute_action(strat, team_b, agent.get_id()))
 
         # apply to environment
         self.environment.step(actions)
+        # save for replay
+        ReplayLogger().log_step(actions)
+        # return wether the game is over or not
+        return not self.environment.is_game_over()
 
 
 if __name__ == '__main__':
@@ -98,15 +107,21 @@ if __name__ == '__main__':
                         help='which decision system to use for the team 2 default to strategy_triangle',
                         default='strategy_triangle',
                         type=str)
+    parser.add_argument('-c', '--color',
+                        help='chose color theme, possible values : dark, light',
+                        default='dark',
+                        type=str)
 
     args = parser.parse_args()
 
     main = Main(args.map_path, args.team1_decision_algo, args.team2_decision_algo)
     print(f'Playing on map {args.map_path}, with team1 using {args.team1_decision_algo} and team2 using {args.team2_decision_algo}')
-    for i in range(20):
-        print('iteration :', i)
-        start_time = time.time()
-        main.cycle()
-        if time.time() - start_time > 10:
+    i = 0
+    while True:
+        print('\riteration :', i, end='')
+        if not main.cycle():
             break
-    replay = CliReplay(main.environment)
+        i += 1
+    print()
+
+    replay = CliReplay(args.color)
