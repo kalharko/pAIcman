@@ -191,7 +191,7 @@ class PacmanGame():
                                     actionsToAdd.append(Action(actionAgent.get_id(), Direction.RESPAWN))
                                 else:
                                     currentAgent.die()
-                                    actionsToAdd.append(Action(currentAction.get_id(), Direction.RESPAWN))
+                                    actionsToAdd.append(Action(currentAgent.get_id(), Direction.RESPAWN))
                             # WTF is he interacting with ?
                             else:
                                 print("Error ! Not authorized object making a movement !" + actionAgent.get_id())
@@ -201,7 +201,7 @@ class PacmanGame():
                             if (isinstance(actionAgent, Pacman)):
                                 if actionAgent.is_invicible():
                                     currentAgent.die()
-                                    actionsToAdd.append(Action(currentAction.get_id(), Direction.RESPAWN))
+                                    actionsToAdd.append(Action(currentAgent.get_id(), Direction.RESPAWN))
                                 else:
                                     actionAgent.die()
                                     actionsToAdd.append(Action(actionAgent.get_id(), Direction.RESPAWN))
