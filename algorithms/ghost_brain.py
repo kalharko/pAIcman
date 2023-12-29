@@ -11,7 +11,7 @@ class GhostBrain(Brain):
         super().__init__(agent_manager)
 
         # define hyper parameters
-        self._EXPLORATION_FORGETING_RATE = 0.1
+        self._EXPLORATION_FORGETTING_RATE = 0.1
         self._EXPLORATION_PAC_GUM_SCORE = 0
         self._EXPLORATION_PAC_DOT_SCORE = 0
         self._EXPLORATION_UNKNOWN_CELL_SCORE = 1
