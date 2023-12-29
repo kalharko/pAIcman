@@ -10,7 +10,6 @@ from back.cell import Cell
 from back.team import Team
 
 
-
 class Brain:
     _agentManager: AgentManager
     _already_visited: list[tuple[int, int]]
