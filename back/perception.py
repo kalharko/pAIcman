@@ -81,7 +81,6 @@ class Perception():
             if time == 0:
                 self._ghost_sightings[ghost.get_id()] = [0, deepcopy(ghost)]
 
-
     def get_board(self) -> Board:
         """Get the perception's board
 
@@ -89,6 +88,14 @@ class Perception():
         :rtype: Board
         """
         return self._board
+
+    def get_last_cells_seen(self) -> list[tuple[int]]:
+        """returns the list of positions of the last cells seen by the team
+
+        :return: list of positions
+        :rtype: list[tuple[int]]
+        """
+        return self._last_cell_seen
 
     def get_sightings(self) -> list[list[int, Agent]]:
         """Get the perception's sighting of ghosts and pacman combined
@@ -143,7 +150,6 @@ class Perception():
         """
         return [sighting[1].get_id() for sighting in self.get_ghost_sightings()]
 
-
     def __str__(self) -> str:
         out = str(self._board)
         width, _ = self._board.get_size()
@@ -155,19 +161,3 @@ class Perception():
             x, y = pos
             out = out[:(width + 1) * y + x] + id[0] + out[(width + 1) * y + x + 1:]
         return out + str(self._agents_seen) + '\n'
-
-    def is_visible(self, position : (int, int), agent_id : str) -> bool:
-        """
-        check if the cell position is visible or not in the perception of the agent agent_id
-
-        :param position: the position of the cell that we want to check
-        :type (int, int)
-        :param agent_id: the agent perception we want to check
-        :type agent_id : str
-        :return: return true if the cell is visible and false instead
-        :rtype bool
-        """
-
-        #TODO: implement the fonction
-
-        return True

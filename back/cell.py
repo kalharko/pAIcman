@@ -1,7 +1,5 @@
 from enum import Enum
 
-from utils.direction import Direction
-
 
 class Cell(Enum):
     """Enum describing the possible states of a cell

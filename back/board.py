@@ -49,7 +49,7 @@ class Board:
 
         self._cells[x][y] = value
 
-    def get_cell(self, position: (int, int)) -> Cell:
+    def get_cell(self, position: tuple[int, int]) -> Cell:
         """Get a cell's value
 
         :param position : the position of the cell we want
@@ -58,8 +58,7 @@ class Board:
         :rtype: Cell
         """
 
-        x = position[0]
-        y = position[1]
+        x, y = position
         assert isinstance(x, int)
         assert isinstance(y, int)
         assert 0 <= x < self._width
@@ -87,29 +86,25 @@ class Board:
         for dx, dy in ((-1, 0), (0, -1), (1, 0), (0, -1)):
             out.append(self._cells[x + dx][y + dy])
         return out
-      
-    def get_next_cell(self, position: (int, int), direction: Direction) -> Cell:
+
+    def get_next_cell(self, position: tuple[int, int], direction: Direction) -> tuple[int, int]:
         """Get the next after moving in a certain direction
 
         :param position: position of the cell whose neighbors we want
         :type position: (int, int)
-
         :param direction : the direction where we move
         :type direction : Direction
-
         :return : the cell where we arrive after moving in the direction
         :rtype : Cell
         """
-
         x = position[0]
         y = position[1]
         assert isinstance(x, int)
         assert isinstance(y, int)
         assert 0 <= x < self._width
         assert 0 <= y < self._height
-        (dx, dy) = direction
-        return self._cells[x + dx][y + dy]
 
+        return (x + direction.value[0], y + direction.value[1])
 
     def get_all(self) -> list[list[Cell]]:
         """Get the full description of the board
@@ -143,7 +138,9 @@ class Board:
         y = position[1]
 
         for direction in Direction:
-            if self.get_next_cell((x, y), direction).is_movable():
+            if direction == Direction['NONE']:
+                continue
+            if self.get_cell(self.get_next_cell((x, y), direction)).is_movable():
                 legal_move.append(direction)
         return legal_move
 

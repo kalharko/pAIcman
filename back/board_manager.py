@@ -93,32 +93,25 @@ class BoardManager():
 
         self._board.set_cell(position, cell)
 
-    def get_collisions(self, agents: tuple[Agent]) -> list[tuple[str, str]]:
+    def get_collisions(self, agent: Agent) -> tuple[str]:
+        """Get the board collisions for an agent
+
+        :param agent: agent for which we want to get the collisions
+        :type agent: Agent
+
+        :return: tuple of the agents collisions
+        :rtype: tuple
         """
-        TODO : william will overwrite this non functioning function
-        """
-        assert isinstance(agents, tuple)
-        assert len(agents) > 0
-        assert isinstance(agents[0], Agent)
 
-        out = []
-        for agent in agents:
-            collisions = []
-            # collision with cell content
-            if (cell := self.get_cell(agent.get_position())) != Cell['EMPTY']:
-                collisions.append(cell)
+        assert isinstance(agent, Agent)
 
-            # collision with other agents
-            for other_agent in agents:
-                if other_agent == agent:
-                    continue
-                if agent.get_position() == other_agent.get_position():
-                    collisions.append((other_agent.get_id()))
+        collisions = []
 
-            for col in collisions:
-                if (col, agent.get_id()) not in out:
-                    out.append((agent.get_id(), col))
-        return out
+        # collision with cell content
+        if (cell := self.get_cell(agent.get_position())) != Cell['EMPTY']:
+            collisions.append(cell)
+
+        return collisions
 
     def get_vision(self, agent: Agent, other_team_agents: tuple[Agent]) -> Perception:
         """Get agent's vision
@@ -164,10 +157,22 @@ class BoardManager():
                 continue
             x, y = a.get_position()
             if board.get_cell((x, y)) != Cell['UNKNOWN']:
-                out.update_sightings(a))
+                out.update_sightings(a)
         return out
 
     def reset(self) -> None:
         """Reset the board to it's initial state
         """
         self._board = copy.deepcopy(self._initial_board)
+
+    def is_game_over(self) -> bool:
+        """Check if the game is over
+
+        :return: True if the game is over, False if it is not
+        :rtype: bool
+        """
+        for y in range(self._board.get_size()[1]):
+            for x in range(self._board.get_size()[0]):
+                if self._board.get_cell((x, y)) == Cell['PAC_DOT']:
+                    return False
+        return True

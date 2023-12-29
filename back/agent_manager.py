@@ -114,3 +114,14 @@ class AgentManager():
         """
         for team in self._teams:
             team.reset()
+
+    def is_game_over(self) -> bool:
+        """Check if the game is over
+
+        :return: True if the game is over, False if not
+        :rtype: bool
+        """
+        for team in self._teams:
+            if team.get_pacman().is_alive() is not True:
+                return True
+        return False
