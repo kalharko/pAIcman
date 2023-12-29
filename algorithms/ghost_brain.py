@@ -15,13 +15,16 @@ class GhostBrain(Brain):
         super().__init__(agent_manager)
 
         # define hyper parameters
+        # exploration
         self._EXPLORATION_FORGETHING_RATE = 0.5
         self._EXPLORATION_PAC_GUM_SCORE = 0
         self._EXPLORATION_PAC_DOT_SCORE = 0
         self._EXPLORATION_UNKNOWN_CELL_SCORE = 1
         self._EXPLORATION_LAST_CELL_VISITED_SCORE = -5
+        # defense
+        self._DEFENSE_DISTANCE_TO_PACMAN = 4
 
-    def _defense(perception: Perception, agent_id: str) -> Action:
+    def _defense(self, team: Team, agent_id: str) -> Action:
         """Give the best defensive action for the given agent
 
         :param perception: the team perception that the ghost agent will use to make it's decision
@@ -31,4 +34,14 @@ class GhostBrain(Brain):
         :return: the optimal defensive action for the given agent
         :rtype: Action
         """
+        perception = team.get_perception()
+        board = perception.get_board()
+        a_star = AStar(board)
+        ghost = team.get_agent(agent_id)
+
+        distances = []
+        for direction in Direction:
+            if not board.get_next_cell(ghost.get_position()).is_movable():
+                continue
+
         return Action(agent_id, random.choice(list(Direction)))

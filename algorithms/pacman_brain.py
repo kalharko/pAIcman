@@ -49,6 +49,7 @@ class PacmanBrain(Brain):
         pacman_position = team.get_pacman().get_position()
         #
         other_ghosts_sightings = perception.get_ghost_sightings()
+        print(other_ghosts_sightings)
         if len(other_ghosts_sightings) == 0:
             ReplayLogger().log_comment(agent_id + ' No ghost sightings, do Exploration instead')
             return self._exploration(team, agent_id)
@@ -56,14 +57,13 @@ class PacmanBrain(Brain):
         cut_off = len(other_ghosts_sightings)
         for sighting in other_ghosts_sightings:
             time = sighting[0]
-            x = sighting[1][0]
-            y = sighting[1][1]
-            vect = [pacman_position[0] - x, pacman_position - y]
+            x, y = sighting[1].get_position()
+            vect = [pacman_position[0] - x, pacman_position[1] - y]
             # check if the sighting is relevant (too far or too long ago)
             if math.sqrt(vect[0] ** 2 + vect[1] ** 2) * time > self._DEFENSE_FLEE_CUT_OFF:
                 cut_off -= 1
-            flee_direction = [(flee_direction[0] + vect[0]) / time,
-                              (flee_direction[1] + vect[1]) / time]
+            flee_direction = [(flee_direction[0] + vect[0]) / (time + 1),
+                              (flee_direction[1] + vect[1]) / (time + 1)]
 
         norm = math.sqrt(flee_direction[0] ** 2 + flee_direction[1] ** 2)
         # soh cah toa
@@ -76,14 +76,17 @@ class PacmanBrain(Brain):
                 closest = abs(a - angle)
         direction = [0, 90, 180, 270].index(direction)
 
-
         # if all sightings are too far
         if cut_off == 0:
             ReplayLogger().log_comment(agent_id + ' Defense Cut off, do Exploration instead')
             return self._exploration(team, agent_id)
 
-
-
-
-
-        return Action(agent_id, random.choice(list(Direction)))
+        ReplayLogger().log_comment('direction ' + str(direction))
+        if direction == 0:
+            return Action(agent_id, Direction['RIGHT'])
+        elif direction == 1:
+            return Action(agent_id, Direction['UP'])
+        elif direction == 2:
+            return Action(agent_id, Direction['LEFT'])
+        elif direction == 3:
+            return Action(agent_id, Direction['DOWN'])
