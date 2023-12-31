@@ -156,7 +156,6 @@ class Perception():
         for id, value in self._agents_seen.items():
             if value[0] != 0:
                 continue
-            print(value)
             _, pos = value
             x, y = pos
             out = out[:(width + 1) * y + x] + id[0] + out[(width + 1) * y + x + 1:]

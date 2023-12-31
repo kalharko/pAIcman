@@ -8,7 +8,6 @@ from front.cli.cli_replay import CliReplay
 from argparse import ArgumentParser
 from utils.replay_logger import ReplayLogger
 import time
-import random
 
 
 class Main():
@@ -20,6 +19,8 @@ class Main():
     brain_ghost: GhostBrain
     environment: PacmanGame
     scenario: int
+    _team1_decision_algo: str
+    _team2_decision_algo: str
 
     def __init__(self, map_path: str, team1_decision_algo: str, team2_decision_algo: str) -> None:
         """Main initialization
@@ -31,9 +32,8 @@ class Main():
         :param team2_decision_algo: decision algorithm for team2
         :type team2_decision_algo: str
         """
-        self.scenario = 0 if team1_decision_algo != team2_decision_algo else 2
-        if self.scenario != 0:
-            self.scenario = 1 if team1_decision_algo == 'utility' else 2
+        self._team1_decision_algo = team1_decision_algo
+        self._team2_decision_algo = team2_decision_algo
 
         # set up environment
         self.environment = PacmanGame()
@@ -57,7 +57,7 @@ class Main():
 
         # different decision systems
         actions = []
-        if self.scenario == 0:  # utility vs strategy triangle
+        if self._team1_decision_algo != self._team2_decision_algo:  # utility vs strategy triangle
             # utility
             actions = self.utility.run(team_a)
             # strategy triangle
@@ -67,7 +67,7 @@ class Main():
                     actions.append(self.brain_pacman.compute_action(strat, team_b, agent.get_id()))
                 else:
                     actions.append(self.brain_ghost.compute_action(strat, team_b, agent.get_id()))
-        elif self.scenario == 1:  # utility vs utility
+        elif self._team1_decision_algo == self._team2_decision_algo and self._team1_decision_algo == 'utility':  # utility vs utility
             actions = self.utility.run(team_a)
             actions += self.utility.run(team_b)
         else:  # strategy triangle vs strategy triangle
@@ -90,6 +90,35 @@ class Main():
         ReplayLogger().log_step(actions)
         # return wether the game is over or not
         return not self.environment.is_game_over()
+
+    def set_teams_utility_parameters(self, value_1: tuple[float], value_2: tuple[float]) -> None:
+        """Set both teams utility parameters
+
+        :param value_1: team 1 utility parameters
+        :type value_1: list[float]
+        :param value_2: team 2 utility parameters
+        :type value_2: list[float]
+        """
+        assert self._team1_decision_algo == 'utility'
+        assert self._team2_decision_algo == 'utility'
+
+        t1, t2 = self.environment.get_teams()
+        t1.set_utility_parameters(value_1)
+        t2.set_utility_parameters(value_2)
+
+    def reset(self) -> None:
+        """Reset the game
+        """
+        self.environment.reset()
+        ReplayLogger().reset()
+
+    def get_winning_team_number(self) -> int:
+        """Get the winning team
+
+        :return: winning team
+        :rtype: Team
+        """
+        return self.environment.winning_team
 
 
 if __name__ == '__main__':
@@ -117,11 +146,15 @@ if __name__ == '__main__':
     main = Main(args.map_path, args.team1_decision_algo, args.team2_decision_algo)
     print(f'Playing on map {args.map_path}, with team1 using {args.team1_decision_algo} and team2 using {args.team2_decision_algo}')
     i = 0
-    while True:
+    while i < 100:
+        start_time = time.time()
         print('\riteration :', i, end='')
         if not main.cycle():
+            print('\nGame Over')
             break
         i += 1
-    print()
+        if time.time() - start_time > 5:
+            print('\nToo long, stopping')
+            break
 
     replay = CliReplay(args.color)

@@ -118,7 +118,7 @@ class CliReplay():
 
         # agents team 2
         x, y = team2.get_pacman().get_position()
-        self._screen.addstr(y + 1, x + 1, char_pacman[team1.get_pacman().get_last_direction()], curses.color_pair(7))
+        self._screen.addstr(y + 1, x + 1, char_pacman[team2.get_pacman().get_last_direction()], curses.color_pair(7))
         for ghost in team2.get_ghosts():
             x, y = ghost.get_position()
             self._screen.addstr(y + 1, x + 1, char_ghost, curses.color_pair(8))

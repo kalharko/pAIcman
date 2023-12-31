@@ -13,16 +13,16 @@ class FloodFill():
             return 0
 
         unvisited = [(0, og_x, og_y)]  # (distance, x, y)
-        visited = []  # [(x, y)]
+        visited = set()  # [(x, y)]
         min_distance_found = 1000
 
         while unvisited != []:
             # move node from unvisited to visited
             distance, x, y = unvisited.pop(0)
-            visited.append((x, y))
+            visited.add((x, y))
 
             # check neighbors
-            for dx, dy in ((-1, 0), (0, -1), (1, 0), (0, -1)):
+            for dx, dy in ((-1, 0), (0, -1), (1, 0), (0, 1)):
                 # continue if already visited
                 if (x + dx, y + dy) in visited:
                     continue
@@ -38,13 +38,5 @@ class FloodFill():
                 # if not too far, add to unvisited
                 if distance + 1 < min_distance_found:
                     unvisited.append((distance + 1, x + dx, y + dy))
-                if len(visited) > 5000:
-                    print(self.board)
-                    print(og_x, og_y)
-                    print(searching_for)
-                    exit()
 
-        if min_distance_found == 1000:
-            print(self.board)
-            print(og_x, og_y, searching_for.name)
         return min_distance_found
