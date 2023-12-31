@@ -164,3 +164,4 @@ out/
 
 # Generated files
 Documentation/class_full_auto.puml
+.vscode/launch.json
