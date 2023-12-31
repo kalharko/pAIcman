@@ -19,6 +19,7 @@ class PacmanGame():
     _agent_manager: AgentManager
     _path_board: str
     _is_game_over: bool
+    winning_team: int
 
     def __init__(self) -> None:
         """PacmanGame's initialization
@@ -26,8 +27,8 @@ class PacmanGame():
         self._board_manager = BoardManager()
         self._agent_manager = AgentManager()
         self._path_board = None
-        self._history = []
         self._is_game_over = False
+        self.winning_team = None
 
     def load_map(self, path: str) -> None:
         """Load a pacman map from a file path
@@ -83,9 +84,6 @@ class PacmanGame():
         assert isinstance(actions, list)
         assert len(actions) > 0
         assert isinstance(actions[0], Action)
-
-        # apply actions
-        self._history.append(actions)
 
         actionIterator = 0
         while (actionIterator < len(actions)):
@@ -281,6 +279,7 @@ class PacmanGame():
         """
         self._agent_manager.reset()
         self._board_manager.reset()
+        self._is_game_over = False
 
     def get_teams(self) -> None:
         """Get the game's teams
@@ -307,7 +306,11 @@ class PacmanGame():
         # check if the game is over
         if self._board_manager.is_game_over() is True:
             self._is_game_over = True
+            t1, t2 = self._agent_manager.get_teams()
+            self.winning_team = 0 if t1.get_score > t2.get_score() else 1
         if self._agent_manager.is_game_over() is True:
             self._is_game_over = True
+            t1, t2 = self._agent_manager.get_teams()
+            self.winning_team = 0 if t1.get_pacman().is_alive() else 1
 
         return self._is_game_over

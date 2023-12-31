@@ -18,11 +18,10 @@ class Main():
     brain_pacman: PacmanBrain
     brain_ghost: GhostBrain
     environment: PacmanGame
-    scenario: int
     _team1_decision_algo: str
     _team2_decision_algo: str
 
-    def __init__(self, map_path: str, team1_decision_algo: str, team2_decision_algo: str) -> None:
+    def __init__(self, map_path: str, team1_decision_algo: str, team2_decision_algo: str, verbose: bool = True) -> None:
         """Main initialization
 
         :param map_path: path to the pacman map to load into the game
@@ -38,7 +37,6 @@ class Main():
         # set up environment
         self.environment = PacmanGame()
         self.environment.load_map(map_path)
-        ReplayLogger().log_map(map_path)
 
         # brains
         self.brain_ghost = GhostBrain(self.environment.get_agent_manager())
@@ -46,6 +44,9 @@ class Main():
 
         # other
         self.utility = Utility()
+        self.verbose = verbose
+        if self.verbose:
+            ReplayLogger().log_map(map_path)
 
     def cycle(self) -> bool:
         """Simulation cycle that adapts to the decision system specified at the creation of the class
@@ -87,7 +88,8 @@ class Main():
         # apply to environment
         self.environment.step(actions)
         # save for replay
-        ReplayLogger().log_step(actions)
+        if self.verbose:
+            ReplayLogger().log_step(actions)
         # return wether the game is over or not
         return not self.environment.is_game_over()
 
