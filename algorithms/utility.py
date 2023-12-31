@@ -1,6 +1,7 @@
 
 
 import copy
+import pickle
 from algorithms.flood_fill import FloodFill
 from back.agent import Agent
 from back.pacman import Pacman
@@ -21,6 +22,8 @@ class Utility():
                            Direction['DOWN'],
                            Direction['LEFT'])
 
+        self.default_params = pickle.load(open('data/genetic/best_individuals/best_params.pkl', 'rb'))
+
     def run(self, team: Team) -> list[Action]:
         assert isinstance(team, Team)
 
@@ -29,6 +32,8 @@ class Utility():
         position_probability = {}  # contains agent_id: [probability, probability, ...]
         # used data
         perception = team.get_perception()
+        params = team.get_utility_parameters()
+        params = params if params is not None else self.default_params
         board = perception.get_board()
         board_width, board_height = board.get_size()
         pacman_sighting = perception.get_pacman_sighting()
@@ -82,6 +87,8 @@ class Utility():
             possible_positions[agent.get_id()] = positions
             position_probability[agent.get_id()] = [1 / len(positions) * nb_of_positions_probability_count_for[i] for i in range(len(positions))]
 
+        ReplayLogger().log_comment('Score, unknown, danger, other danger')
+
         # chose action
         out = []
         for decisional_agent in team.get_agents():
@@ -111,9 +118,12 @@ class Utility():
                 for og_positions, probability in states:
                     positions = copy.deepcopy(og_positions)
                     positions[positions.index(None)] = action
-                    eu += self.utility(positions, all_ids, team) * probability
+                    util = self.utility(positions, all_ids, team)
+                    for i, x in enumerate(util):
+                        eu += params[i * 3] * x ** 2 + params[i * 3 + 1] * x + params[i * 3 + 2]
+                    eu *= probability
                 expected_utilities.append(eu)
-                ReplayLogger().log_comment(f'{action} : {eu}')
+                ReplayLogger().log_comment(f'{action} : {util}\t\t{eu}\n{positions}')
 
             # choose max expected utility
             chosen_action = possible_positions[decisional_agent_id][expected_utilities.index(max(expected_utilities))]
@@ -209,4 +219,4 @@ class Utility():
                 for ghost in enemy_ghosts + team_ghosts:
                     other_team_danger += a_star.distance(positions[ghost], positions[enemy_pacman])
 
-        return -min_dist_to_score / 30 - min(min_dist_to_unknown) / 30 + danger / 20 - other_team_danger / 20
+        return [-min_dist_to_score, -min(min_dist_to_unknown), danger, -other_team_danger]

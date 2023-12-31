@@ -91,6 +91,35 @@ class Main():
         # return wether the game is over or not
         return not self.environment.is_game_over()
 
+    def set_teams_utility_parameters(self, value_1: tuple[float], value_2: tuple[float]) -> None:
+        """Set both teams utility parameters
+
+        :param value_1: team 1 utility parameters
+        :type value_1: list[float]
+        :param value_2: team 2 utility parameters
+        :type value_2: list[float]
+        """
+        assert self._team1_decision_algo == 'utility'
+        assert self._team2_decision_algo == 'utility'
+
+        t1, t2 = self.environment.get_teams()
+        t1.set_utility_parameters(value_1)
+        t2.set_utility_parameters(value_2)
+
+    def reset(self) -> None:
+        """Reset the game
+        """
+        self.environment.reset()
+        ReplayLogger().reset()
+
+    def get_winning_team_number(self) -> int:
+        """Get the winning team
+
+        :return: winning team
+        :rtype: Team
+        """
+        return self.environment.winning_team
+
 
 if __name__ == '__main__':
     parser = ArgumentParser(prog='Paicman',
