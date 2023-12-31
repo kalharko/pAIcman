@@ -1,7 +1,6 @@
 @startuml class_full
 title Auto generated class diagram
 
-
 package utils {
 class Action{
 +id: str
