@@ -22,7 +22,7 @@ class FloodFill():
             visited.add((x, y))
 
             # check neighbors
-            for dx, dy in ((-1, 0), (0, -1), (1, 0), (0, -1)):
+            for dx, dy in ((-1, 0), (0, -1), (1, 0), (0, 1)):
                 # continue if already visited
                 if (x + dx, y + dy) in visited:
                     continue

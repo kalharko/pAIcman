@@ -2,11 +2,14 @@
 
 import copy
 from algorithms.flood_fill import FloodFill
+from back.agent import Agent
+from back.pacman import Pacman
 from back.team import Team
 from utils.action import Action
 from utils.direction import Direction
 from back.cell import Cell
 from algorithms.a_star import AStar
+from random import random
 from utils.replay_logger import ReplayLogger
 
 
@@ -23,6 +26,7 @@ class Utility():
 
         # important data
         possible_positions = {}  # contains agent_id: [(x, y), (x,y), ...]
+        position_probability = {}  # contains agent_id: [probability, probability, ...]
         # used data
         perception = team.get_perception()
         board = perception.get_board()
@@ -41,18 +45,20 @@ class Utility():
                     continue
                 positions.append(copy.copy(new_pos))
             possible_positions[agent.get_id()] = copy.deepcopy(positions)
+            position_probability[agent.get_id()] = [1 / len(positions)] * len(positions)
 
         # other team agents positions and probability
-        # TODO bake probability in possible positions and optimize position count of ennemies not seen for a while
         for value in pacman_sighting + ghost_sightings:
             how_long_ago, agent = value
             og_x, og_y = agent.get_position()
             positions = [(og_x, og_y)]
+            nb_of_positions_probability_count_for = [1]
+            nb_skipped = 0
             # iterate on positions of a square of size how_long_ago, centered on agent last seen position
-            for dx in range(-how_long_ago, how_long_ago + 1):
-                for dy in range(-how_long_ago, how_long_ago + 1):
+            for dx in range(-how_long_ago - 1, how_long_ago + 2):
+                for dy in range(-how_long_ago - 1, how_long_ago + 2):
                     # quit if distance is to great for the agent to have reached it
-                    if abs(dx) + abs(dy) > how_long_ago:
+                    if abs(dx) + abs(dy) > how_long_ago + 1:
                         continue
                     x, y = og_x + dx, og_y + dy
                     # quit if outside of board
@@ -62,19 +68,27 @@ class Utility():
                     if board.get_cell((x, y)) == Cell['WALL']:
                         continue
                     # second, more precise check of distance
-                    if astar.distance((x, y), (og_x, og_y)) > how_long_ago:
+                    if astar.distance((x, y), (og_x, og_y)) > how_long_ago + 2:
+                        continue
+                    # random chance to skip this position
+                    if random() > 1 / (how_long_ago + 1 / 2 + nb_skipped):
+                        nb_skipped += 1
                         continue
                     # finaly position is valid, so we keep it
                     if not (x, y) in positions:
                         positions.append((og_x + dx, og_y + dy))
+                        nb_of_positions_probability_count_for.append(nb_skipped + 1)
+                        nb_skipped = 0
             possible_positions[agent.get_id()] = positions
+            position_probability[agent.get_id()] = [1 / len(positions) * nb_of_positions_probability_count_for[i] for i in range(len(positions))]
 
         # chose action
         out = []
         for decisional_agent in team.get_agents():
             # build state probability list
-            states = [[[], 1]]  # list of [[[all agent positions], probability]]
+            states = [[[], 1]]  # list of [[[all agent positions], probability]] TODO change
             decisional_agent_id = decisional_agent.get_id()
+            ReplayLogger().log_comment(f'{decisional_agent_id}')
             for id in all_ids:
                 new_states = []
                 # decisional agent's positions is filled with None for later replacement
@@ -99,6 +113,7 @@ class Utility():
                     positions[positions.index(None)] = action
                     eu += self.utility(positions, all_ids, team) * probability
                 expected_utilities.append(eu)
+                ReplayLogger().log_comment(f'{action} : {eu}')
 
             # choose max expected utility
             chosen_action = possible_positions[decisional_agent_id][expected_utilities.index(max(expected_utilities))]
@@ -118,47 +133,80 @@ class Utility():
                 new_out.append(Action(id, directions[deltas.index(dpos)]))
         return new_out
 
-    def utility(self, positions, all_ids, team: Team) -> float:
+    def utility(self, description: list[tuple[int, int]], all_ids: list[str], team: Team) -> float:
         # simple combination of the following metrics :
         # - distance to score gain
         # - distance to explored cell gain
         # - team's agent danger level
         # - other team's agent danger level
 
-        # general data
+        # build positions: dict[(str, int, int): tuple[int, int]]
         perception = team.get_perception()
+        positions = {}
+        team_number = team.get_team_number()
+        for p, id in zip(description, all_ids):
+            if id in team.get_ids():
+                if id == team.get_pacman().get_id():
+                    positions[(id, team_number, 1)] = p
+                else:
+                    positions[(id, team_number, 0)] = p
+            else:
+                if id in perception.get_ghost_ids():
+                    positions[(id, team_number + 1, 0)] = p
+                else:
+                    positions[(id, team_number + 1, 1)] = p
+
+        # general data
         board = perception.get_board()
-        team_ids = list(team.get_ids())
         flood_fill = FloodFill(board)
         a_star = AStar(board)
+        enemy_ghosts = []
+        enemy_pacman = None
+        team_ghosts = []
+        team_pacman = None
+        for id, team_number, type in positions.keys():
+            if team_number == team.get_team_number():
+                if type == 1:  # is pacman
+                    team_pacman = (id, team_number, type)
+                else:  # is ghost
+                    team_ghosts.append((id, team_number, type))
+            else:
+                if type == 1:  # is pacman
+                    enemy_pacman = (id, team_number, type)
+                else:  # is ghost
+                    enemy_ghosts.append((id, team_number, type))
 
         # distance to score gain
-        pacman_pos = positions[all_ids.index(team.get_pacman().get_id())]
+        pacman_pos = positions[(team.get_pacman().get_id(), team.get_team_number(), 1)]
         min_dist_to_score = flood_fill.closest_cell(pacman_pos[0], pacman_pos[1], Cell['PAC_DOT'])
 
         # distance to unknown cell
         min_dist_to_unknown = []
-        for id, position in zip(all_ids, positions):
-            if id not in team_ids:
-                continue
-            min_dist_to_unknown.append(flood_fill.closest_cell(position[0], position[1], Cell['UNKNOWN']))
+        for agent in team_ghosts + [team_pacman]:
+            x, y = positions[agent]
+            min_dist_to_unknown.append(flood_fill.closest_cell(x, y, Cell['UNKNOWN']))
 
-        # team's danger level
+        # team's and other team's danger level
         danger = 0
         other_team_danger = 0
-        for _, enemy_ghost in perception.get_ghost_sightings():
-            if enemy_ghost.is_vulnerable():
-                other_team_danger += a_star.distance(team.get_pacman().get_position(), enemy_ghost.get_position())
-            else:
-                danger += a_star.distance(team.get_pacman().get_position(), enemy_ghost.get_position())
+        # team's pacman
+        if team.get_pacman().is_invicible():  # is not vulnerable
+            for ghost in enemy_ghosts:
+                other_team_danger += a_star.distance(positions[ghost], positions[team_pacman])
+            for ghost in team_ghosts:
+                danger += a_star.distance(positions[ghost], positions[team_pacman])
+        else:  # is vulnerable
+            for ghost in team_ghosts + enemy_ghosts:
+                danger += a_star.distance(positions[ghost], positions[team_pacman])
+        # enemy's pacman
+        if enemy_pacman is not None:
+            if team.get_ghosts()[0].is_vulnerable():  # is not vulnerable
+                for ghost in enemy_ghosts:
+                    other_team_danger += a_star.distance(positions[ghost], positions[enemy_pacman])
+                for ghost in team_ghosts:
+                    danger += a_star.distance(positions[ghost], positions[enemy_pacman])
+            else:  # is vulnerable
+                for ghost in enemy_ghosts + team_ghosts:
+                    other_team_danger += a_star.distance(positions[ghost], positions[enemy_pacman])
 
-        pacman_sighting = perception.get_pacman_sighting()
-        if pacman_sighting != []:
-            enemy_pacman = pacman_sighting[0][1]
-            for ghost in team.get_ghosts():
-                if ghost.is_vulnerable():
-                    danger += a_star.distance(enemy_pacman.get_position(), ghost.get_position())
-                else:
-                    other_team_danger += a_star.distance(enemy_pacman.get_position(), ghost.get_position())
-
-        return -min_dist_to_score / 30 - min(min_dist_to_unknown) / 30 - danger / 90 + other_team_danger / 90
+        return -min_dist_to_score / 30 - min(min_dist_to_unknown) / 30 + danger / 20 - other_team_danger / 20

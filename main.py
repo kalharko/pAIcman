@@ -8,7 +8,6 @@ from front.cli.cli_replay import CliReplay
 from argparse import ArgumentParser
 from utils.replay_logger import ReplayLogger
 import time
-import random
 
 
 class Main():
@@ -20,6 +19,8 @@ class Main():
     brain_ghost: GhostBrain
     environment: PacmanGame
     scenario: int
+    _team1_decision_algo: str
+    _team2_decision_algo: str
 
     def __init__(self, map_path: str, team1_decision_algo: str, team2_decision_algo: str) -> None:
         """Main initialization
@@ -31,9 +32,8 @@ class Main():
         :param team2_decision_algo: decision algorithm for team2
         :type team2_decision_algo: str
         """
-        self.scenario = 0 if team1_decision_algo != team2_decision_algo else 2
-        if self.scenario != 0:
-            self.scenario = 1 if team1_decision_algo == 'utility' else 2
+        self._team1_decision_algo = team1_decision_algo
+        self._team2_decision_algo = team2_decision_algo
 
         # set up environment
         self.environment = PacmanGame()
@@ -57,7 +57,7 @@ class Main():
 
         # different decision systems
         actions = []
-        if self.scenario == 0:  # utility vs strategy triangle
+        if self._team1_decision_algo != self._team2_decision_algo:  # utility vs strategy triangle
             # utility
             actions = self.utility.run(team_a)
             # strategy triangle
@@ -67,7 +67,7 @@ class Main():
                     actions.append(self.brain_pacman.compute_action(strat, team_b, agent.get_id()))
                 else:
                     actions.append(self.brain_ghost.compute_action(strat, team_b, agent.get_id()))
-        elif self.scenario == 1:  # utility vs utility
+        elif self._team1_decision_algo == self._team2_decision_algo and self._team1_decision_algo == 'utility':  # utility vs utility
             actions = self.utility.run(team_a)
             actions += self.utility.run(team_b)
         else:  # strategy triangle vs strategy triangle
@@ -117,11 +117,15 @@ if __name__ == '__main__':
     main = Main(args.map_path, args.team1_decision_algo, args.team2_decision_algo)
     print(f'Playing on map {args.map_path}, with team1 using {args.team1_decision_algo} and team2 using {args.team2_decision_algo}')
     i = 0
-    while True:
+    while i < 100:
+        start_time = time.time()
         print('\riteration :', i, end='')
         if not main.cycle():
+            print('\nGame Over')
             break
         i += 1
-    print()
+        if time.time() - start_time > 5:
+            print('\nToo long, stopping')
+            break
 
     replay = CliReplay(args.color)

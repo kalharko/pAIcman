@@ -115,6 +115,14 @@ class Team():
         """
         return self._score
 
+    def get_team_number(self) -> int:
+        """Get the team's number
+
+        :return: the team's number
+        :rtype: int
+        """
+        return self._team_number
+
     def update_perception(self, board_manager: BoardManager, other_team: 'Team') -> None:
         """Update the team's perception
 
