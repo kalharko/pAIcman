@@ -59,8 +59,7 @@ class ReplayLogger(metaclass=SingletonMeta):
         """
         return (self.replay_path_map, self.replay_comments, self.replay_steps)
 
-    def reset_replay(self) -> None:
-        self.replay_path_map = ''
+    def reset(self) -> None:
         self.replay_comments = []
         self.replay_steps = []
 

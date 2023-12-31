@@ -18,7 +18,7 @@ class CliReplay():
     _comments: list[list[str]]
     _theme: str
 
-    def __init__(self, theme: str) -> None:
+    def __init__(self, theme: str = 'dark') -> None:
         self._map_path, self._comments, self._steps = ReplayLogger().get_replay()
         self._game = PacmanGame()
         self._game.load_map(self._map_path)
