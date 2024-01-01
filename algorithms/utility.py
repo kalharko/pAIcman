@@ -2,9 +2,7 @@
 
 import copy
 import pickle
-from algorithms.flood_fill import FloodFill
-from back.agent import Agent
-from back.pacman import Pacman
+from algorithms.flood_fill import closest_cell
 from back.team import Team
 from utils.action import Action
 from utils.direction import Direction
@@ -23,6 +21,7 @@ class Utility():
                            Direction['LEFT'])
 
         self.default_params = pickle.load(open('data/genetic/best_individuals/best_params.pkl', 'rb'))
+        self.a_star = AStar()
 
     def run(self, team: Team) -> list[Action]:
         assert isinstance(team, Team)
@@ -39,7 +38,7 @@ class Utility():
         pacman_sighting = perception.get_pacman_sighting()
         ghost_sightings = perception.get_ghost_sightings()
         all_ids = list(team.get_ids()) + perception.get_ids()
-        astar = AStar(board)
+        self.a_star.load_board(board)
 
         # decisional agent's team agents positions and probability
         for agent in team.get_agents():
@@ -73,7 +72,7 @@ class Utility():
                     if board.get_cell((x, y)) == Cell['WALL']:
                         continue
                     # second, more precise check of distance
-                    if astar.distance((x, y), (og_x, og_y)) > how_long_ago + 2:
+                    if self.a_star.distance((x, y), (og_x, og_y)) > how_long_ago + 2:
                         continue
                     # random chance to skip this position
                     if random() > 1 / (how_long_ago + 1 / 2 + nb_skipped):
@@ -168,8 +167,6 @@ class Utility():
 
         # general data
         board = perception.get_board()
-        flood_fill = FloodFill(board)
-        a_star = AStar(board)
         enemy_ghosts = []
         enemy_pacman = None
         team_ghosts = []
@@ -188,13 +185,13 @@ class Utility():
 
         # distance to score gain
         pacman_pos = positions[(team.get_pacman().get_id(), team.get_team_number(), 1)]
-        min_dist_to_score = flood_fill.closest_cell(pacman_pos[0], pacman_pos[1], Cell['PAC_DOT'])
+        min_dist_to_score = closest_cell(pacman_pos[0], pacman_pos[1], Cell['PAC_DOT'], board)
 
         # distance to unknown cell
         min_dist_to_unknown = []
         for agent in team_ghosts + [team_pacman]:
             x, y = positions[agent]
-            min_dist_to_unknown.append(flood_fill.closest_cell(x, y, Cell['UNKNOWN']))
+            min_dist_to_unknown.append(closest_cell(x, y, Cell['UNKNOWN'], board))
 
         # team's and other team's danger level
         danger = 0
@@ -202,21 +199,21 @@ class Utility():
         # team's pacman
         if team.get_pacman().is_invicible():  # is not vulnerable
             for ghost in enemy_ghosts:
-                other_team_danger += a_star.distance(positions[ghost], positions[team_pacman])
+                other_team_danger += self.a_star.distance(positions[ghost], positions[team_pacman])
             for ghost in team_ghosts:
-                danger += a_star.distance(positions[ghost], positions[team_pacman])
+                danger += self.a_star.distance(positions[ghost], positions[team_pacman])
         else:  # is vulnerable
             for ghost in team_ghosts + enemy_ghosts:
-                danger += a_star.distance(positions[ghost], positions[team_pacman])
+                danger += self.a_star.distance(positions[ghost], positions[team_pacman])
         # enemy's pacman
         if enemy_pacman is not None:
             if team.get_ghosts()[0].is_vulnerable():  # is not vulnerable
                 for ghost in enemy_ghosts:
-                    other_team_danger += a_star.distance(positions[ghost], positions[enemy_pacman])
+                    other_team_danger += self.a_star.distance(positions[ghost], positions[enemy_pacman])
                 for ghost in team_ghosts:
-                    danger += a_star.distance(positions[ghost], positions[enemy_pacman])
+                    danger += self.a_star.distance(positions[ghost], positions[enemy_pacman])
             else:  # is vulnerable
                 for ghost in enemy_ghosts + team_ghosts:
-                    other_team_danger += a_star.distance(positions[ghost], positions[enemy_pacman])
+                    other_team_danger += self.a_star.distance(positions[ghost], positions[enemy_pacman])
 
         return [-min_dist_to_score, -min(min_dist_to_unknown), danger, -other_team_danger]
