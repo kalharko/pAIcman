@@ -1,7 +1,6 @@
 from argparse import ArgumentParser
 import copy
 import random
-from front.cli.cli_replay import CliReplay
 from main import Main
 from os import listdir
 import time
@@ -15,7 +14,7 @@ parser = ArgumentParser(prog='Utility Genetic Training for Paicman',
                         epilog='epilog')
 parser.add_argument('-m', '--map_path',
                     help='path to the map to use',
-                    default='maps/9x9.txt')
+                    default='maps/6x9.txt')
 parser.add_argument('-b', '--include_best',
                     help='include the best individual in the initial population',
                     default=False,)
@@ -24,14 +23,14 @@ args = parser.parse_args()
 
 # Constants
 NB_GENES = 12
-POP_SIZE = 30
-TOURNAMENT_SIZE = 4
-SELECTION_PRESSURE = 0.9
-NB_PARENTS = 8
-NB_CHILDREN = 20
+POP_SIZE = 15
+TOURNAMENT_SIZE = 3
+SELECTION_PRESSURE = 0.99
+NB_PARENTS = 4  # 8
+NB_CHILDREN = 12
 MUTATION_RATE = 0.01
 BREADING_RATE = 0.5
-NB_ITERATIONS = 4
+NB_ITERATIONS = 12
 CROSS_ALPHA = [0.5, 1.5, -0.3]
 CROSS_BETA = [0.5, -0.5, 1.5]
 
@@ -53,7 +52,7 @@ def select_parent_indexes(population, nb_parents=NB_PARENTS, pressure=SELECTION_
     parents = []
     tested_indexes = set()
     while len(parents) < nb_parents:
-        print('len(parents)', len(parents))
+        print('\nlen(parents)', len(parents))
         # participants selection
         participants = []
         while len(participants) < tournament_size:
@@ -66,27 +65,26 @@ def select_parent_indexes(population, nb_parents=NB_PARENTS, pressure=SELECTION_
 
         # tournament TODO include length of games to advantage fast wins
         results = [[0 for i in range(tournament_size)] for j in range(tournament_size)]
+        debug_i = 0
         for p1 in participants:
-            print('p1', display_individual(population[p1]))
             for p2 in participants:
                 if p1 == p2:
                     continue
-                print('p2', display_individual(population[p2]))
+                print('\r|  ', debug_i, end='')
+                debug_i += 1
                 # setup match
                 main.reset()
                 main.set_teams_utility_parameters(population[p1], population[p2])
                 i = 0
                 while main.cycle() and i < 15:
-                    print('\r' + str(i), end='')
                     i += 1
-                CliReplay()
-                print()
                 if main.get_winning_team_number() == 0:
                     results[participants.index(p1)][participants.index(p2)] += 1
                     results[participants.index(p2)][participants.index(p1)] -= 1
                 else:
                     results[participants.index(p1)][participants.index(p2)] -= 1
                     results[participants.index(p2)][participants.index(p1)] += 1
+        print()
 
         # best selection
         scores = [sum(line) for line in results]
@@ -112,9 +110,9 @@ def cross_breading(population, parent_indexes) -> list[tuple[int]]:
         parent1 = i % NB_PARENTS
         parent2 = (i + 1) % NB_PARENTS
         for j in range(len(CROSS_ALPHA)):
-            k = random.ranrange(NB_GENES)  # random gene index
+            k = random.randrange(NB_GENES)  # random gene index
             gene = CROSS_ALPHA[j] * population[parent1][k] + CROSS_BETA[j] * population[parent2][k]
-            child = population[parent1][:k] + (gene) + population[parent2][k:]
+            child = tuple((parent_gene if gene_index != k else gene for gene_index, parent_gene in enumerate(population[parent1])))
             children.append(child)
         i += 1
 
@@ -133,7 +131,7 @@ def mutations(children) -> list[tuple[int]]:
         # random gene multiplication
         random_gene = random.randrange(NB_GENES)
         gene = child[random_gene] * random.uniform(-2, 2)
-        mutants.append(child[:random_gene] + (gene) + child[random_gene:])
+        mutants.append(tuple((child_gene if gene_index != random_gene else gene for gene_index, child_gene in enumerate(child))))
     return mutants
 
 
@@ -141,7 +139,11 @@ def mutations(children) -> list[tuple[int]]:
 population = []
 if args.include_best:
     best_paths = listdir('data/genetic/best_individuals/')
-    print('Including best individual', best_paths)[-1]
+    print('Including best individuals')
+    i = 0
+    while i < min(NB_PARENTS // 2, len(best_paths)):
+        population.append(tuple(pickle.load(open(best_paths[i], 'rb'))))
+        i += 1
     population.append(tuple(pickle.load(open(best_paths[-1], 'rb'))))
 while len(population) < POP_SIZE:
     population.append(tuple((random.random() for i in range(NB_GENES))))
