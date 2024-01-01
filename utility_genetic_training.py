@@ -6,6 +6,8 @@ from os import listdir
 import time
 import pickle
 
+from utils.replay_logger import ReplayLogger
+
 if __name__ != '__main__':
     exit(0)
 
@@ -46,7 +48,7 @@ def display_individual(individual) -> None:
     print(out)
 
 
-def select_parent_indexes(population, nb_parents=NB_PARENTS, pressure=SELECTION_PRESSURE, tournament_size=TOURNAMENT_SIZE) -> tuple[list[int], set[int]]:
+def select_parent_indexes(population, nb_parents=NB_PARENTS, pressure=SELECTION_PRESSURE, tournament_size=TOURNAMENT_SIZE, include_results: bool = False) -> tuple[list[int], set[int]]:
     print(f'Selecting {nb_parents} parents')
     # parent selection through tournament
     parents = []
@@ -84,6 +86,8 @@ def select_parent_indexes(population, nb_parents=NB_PARENTS, pressure=SELECTION_
                 else:
                     results[participants.index(p1)][participants.index(p2)] -= 1
                     results[participants.index(p2)][participants.index(p1)] += 1
+                ReplayLogger().save_replay()
+                exit()
         print()
 
         # best selection
@@ -96,6 +100,8 @@ def select_parent_indexes(population, nb_parents=NB_PARENTS, pressure=SELECTION_
 
     if len(parents) > NB_PARENTS:
         parents = parents[:NB_PARENTS]
+    if include_results:
+        return parents, tested_indexes, results
     return parents, tested_indexes
 
 
@@ -169,7 +175,15 @@ for iter in range(NB_ITERATIONS):
 
 
 # tournament to find best individual
-best = population[select_parent_indexes(population, nb_parents=1, tournament_size=POP_SIZE, pressure=1)[0][0]]
+parents, tested_indexes, results = select_parent_indexes(population, nb_parents=1, tournament_size=POP_SIZE, pressure=1, include_results=True)
+best = population[parents[0]]
+
+print()
+for line in results:
+    for char in line:
+        print(str(char) + ' ' * (4 - len(str(char))), end=' ')
+    print()
+print()
 
 # save best individual
 print(best)

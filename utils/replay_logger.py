@@ -64,7 +64,7 @@ class ReplayLogger(metaclass=SingletonMeta):
         self.replay_comments = []
         self.replay_steps = []
 
-    def save_replay(self, path: str) -> None:
+    def save_replay(self, path: str = 'last_replay.pkl') -> None:
         """Saves the current replay
 
         :param path: path to where the file should be saved

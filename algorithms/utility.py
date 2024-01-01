@@ -3,6 +3,7 @@
 import copy
 import pickle
 from algorithms.flood_fill import closest_cell
+from back.agent import Agent
 from back.team import Team
 from utils.action import Action
 from utils.direction import Direction
@@ -20,7 +21,7 @@ class Utility():
                            Direction['DOWN'],
                            Direction['LEFT'])
 
-        self.default_params = pickle.load(open('data/genetic/best_individuals/best_params.pkl', 'rb'))
+        self.default_params = pickle.load(open('data/genetic/best_individuals/old_params.pkl', 'rb'))
         self.a_star = AStar()
 
     def run(self, team: Team) -> list[Action]:
@@ -117,7 +118,7 @@ class Utility():
                 for og_positions, probability in states:
                     positions = copy.deepcopy(og_positions)
                     positions[positions.index(None)] = action
-                    util = self.utility(positions, all_ids, team)
+                    util = self.utility(positions, all_ids, team, decisional_agent)
                     for i, x in enumerate(util):
                         eu += params[i * 3] * x ** 2 + params[i * 3 + 1] * x + params[i * 3 + 2]
                     eu *= probability
@@ -142,7 +143,7 @@ class Utility():
                 new_out.append(Action(id, directions[deltas.index(dpos)]))
         return new_out
 
-    def utility(self, description: list[tuple[int, int]], all_ids: list[str], team: Team) -> float:
+    def utility(self, description: list[tuple[int, int]], all_ids: list[str], team: Team, decisional_agent: Agent) -> float:
         # simple combination of the following metrics :
         # - distance to score gain
         # - distance to explored cell gain
@@ -187,17 +188,15 @@ class Utility():
         pacman_pos = positions[(team.get_pacman().get_id(), team.get_team_number(), 1)]
         min_dist_to_score = closest_cell(pacman_pos[0], pacman_pos[1], Cell['PAC_DOT'], board)
 
-        # distance to unknown cell
-        min_dist_to_unknown = []
-        for agent in team_ghosts + [team_pacman]:
-            x, y = positions[agent]
-            min_dist_to_unknown.append(closest_cell(x, y, Cell['UNKNOWN'], board))
+        # distance from decisional agent to unknown cell
+        x, y = positions[decisional_agent]
+        min_dist_to_unknown = closest_cell(x, y, Cell['UNKNOWN'], board)
 
         # team's and other team's danger level
         danger = 0
         other_team_danger = 0
         # team's pacman
-        if team.get_pacman().is_invicible():  # is not vulnerable
+        if team.get_pacman().is_invicible():  # is invicible
             for ghost in enemy_ghosts:
                 other_team_danger += self.a_star.distance(positions[ghost], positions[team_pacman])
             for ghost in team_ghosts:

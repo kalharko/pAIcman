@@ -104,7 +104,7 @@ class Agent():
             x, y = 0, 1
         elif direction == Direction['LEFT']:
             x, y = -1, 0
-        else :
+        else:
             x, y = 0, 0
 
         self._x += x
@@ -130,7 +130,7 @@ class Agent():
             x, y = 0, 1
         elif direction == Direction['LEFT']:
             x, y = -1, 0
-        else :
+        else:
             x, y = 0, 0
 
         return (self._x + x, self._y + y)

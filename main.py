@@ -93,6 +93,12 @@ class Main():
         # return wether the game is over or not
         return not self.environment.is_game_over()
 
+    def play_until_game_over(self) -> None:
+        """Play until the game is over
+        """
+        while self.cycle():
+            pass
+
     def set_teams_utility_parameters(self, value_1: tuple[float], value_2: tuple[float]) -> None:
         """Set both teams utility parameters
 
