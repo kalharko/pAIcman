@@ -4,7 +4,6 @@ from back.pacman import Pacman
 from algorithms.pacman_brain import PacmanBrain
 from algorithms.ghost_brain import GhostBrain
 from utils.strategy import Strategy
-from front.cli.cli_replay import CliReplay
 from argparse import ArgumentParser
 from utils.replay_logger import ReplayLogger
 import time
@@ -18,6 +17,7 @@ class Main():
     brain_pacman: PacmanBrain
     brain_ghost: GhostBrain
     environment: PacmanGame
+    scenario: int
     _team1_decision_algo: str
     _team2_decision_algo: str
 
@@ -37,6 +37,7 @@ class Main():
         # set up environment
         self.environment = PacmanGame()
         self.environment.load_map(map_path)
+        ReplayLogger().log_map(map_path)
 
         # brains
         self.brain_ghost = GhostBrain(self.environment.get_agent_manager())
@@ -88,8 +89,7 @@ class Main():
         # apply to environment
         self.environment.step(actions)
         # save for replay
-        if self.verbose:
-            ReplayLogger().log_step(actions)
+        ReplayLogger().log_step(actions)
         # return wether the game is over or not
         return not self.environment.is_game_over()
 
@@ -159,4 +159,4 @@ if __name__ == '__main__':
             print('\nToo long, stopping')
             break
 
-    replay = CliReplay(args.color)
+ReplayLogger().save_replay('last_replay.pkl')
