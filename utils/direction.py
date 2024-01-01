@@ -19,3 +19,8 @@ class Direction(Enum):
                 return Direction.RIGHT
             case Direction.RIGHT:
                 return Direction.LEFT
+            case Direction.RESPAWN:
+                return Direction.RESPAWN
+            case Direction.NONE:
+                print('asks for oposite of direction NONE and dont like it')
+                return Direction.NONE

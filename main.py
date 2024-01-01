@@ -4,7 +4,6 @@ from back.pacman import Pacman
 from algorithms.pacman_brain import PacmanBrain
 from algorithms.ghost_brain import GhostBrain
 from utils.strategy import Strategy
-from front.cli.cli_replay import CliReplay
 from argparse import ArgumentParser
 from utils.replay_logger import ReplayLogger
 import time
@@ -22,7 +21,7 @@ class Main():
     _team1_decision_algo: str
     _team2_decision_algo: str
 
-    def __init__(self, map_path: str, team1_decision_algo: str, team2_decision_algo: str) -> None:
+    def __init__(self, map_path: str, team1_decision_algo: str, team2_decision_algo: str, verbose: bool = True) -> None:
         """Main initialization
 
         :param map_path: path to the pacman map to load into the game
@@ -46,6 +45,9 @@ class Main():
 
         # other
         self.utility = Utility()
+        self.verbose = verbose
+        if self.verbose:
+            ReplayLogger().log_map(map_path)
 
     def cycle(self) -> bool:
         """Simulation cycle that adapts to the decision system specified at the creation of the class
@@ -157,4 +159,4 @@ if __name__ == '__main__':
             print('\nToo long, stopping')
             break
 
-    replay = CliReplay(args.color)
+ReplayLogger().save_replay('last_replay.pkl')
