@@ -48,6 +48,7 @@ class PacmanGame():
         # load board
         board_description = lines[lines.index('|\n') + 1:]
         self._board_manager.load(board_description)
+        self._board_manager.load(board_description, path)
 
         # load agents
         agents_description = lines[:lines.index('|\n')]
@@ -293,6 +294,9 @@ class PacmanGame():
         :rtype : AgentManager
         """
         return self._agent_manager
+
+    def get_board_distances(self) -> dict[tuple[int, int]: dict[tuple[int, int], int]]:
+        return self._board_manager.get_board_distances()
 
     def is_game_over(self) -> bool:
         """Check if the game is over

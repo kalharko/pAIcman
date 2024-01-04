@@ -45,6 +45,7 @@ class Main():
 
         # other
         self.utility = Utility()
+        self.utility = Utility(self.environment.get_board_distances())
         self.verbose = verbose
         if self.verbose:
             ReplayLogger().log_map(map_path)
