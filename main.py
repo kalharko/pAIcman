@@ -44,7 +44,6 @@ class Main():
         self.brain_pacman = PacmanBrain(self.environment.get_agent_manager())
 
         # other
-        self.utility = Utility()
         self.utility = Utility(self.environment.get_board_distances())
         self.verbose = verbose
         if self.verbose:
@@ -129,6 +128,15 @@ class Main():
         """
         return self.environment.winning_team
 
+    def is_repeating(self) -> bool:
+        """Returns wether or not the game is repeating and fruitless
+
+        :return: wether or not the game is repeating
+        :rtype: bool
+        """
+
+        return ReplayLogger().is_repeating()
+
 
 if __name__ == '__main__':
     parser = ArgumentParser(prog='Paicman',
@@ -160,6 +168,9 @@ if __name__ == '__main__':
         print('\riteration :', i, end='')
         if not main.cycle():
             print('\nGame Over')
+            break
+        if main.is_repeating():
+            print('\nIs repeating')
             break
         i += 1
         if time.time() - start_time > 5:
