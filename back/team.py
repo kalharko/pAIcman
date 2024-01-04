@@ -163,7 +163,7 @@ class Team():
         """Reset all the agents in the team, and the team score
         """
         for agent in self.get_agents():
-            agent.respawn()
+            agent.reset()
         self._score = 0
 
     def __str__(self) -> str:

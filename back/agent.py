@@ -141,6 +141,14 @@ class Agent():
         self._x = self._start_x
         self._y = self._start_y
 
+    def reset(self) -> None:
+        """More potent than respawn, called when the game is restarted
+        """
+        self.respawn()
+        self._alive = True
+        self._last_direction = Direction['UP']
+        self._score = 0
+
     def get_team(self) -> int:
         """Get the agent's team id
 
