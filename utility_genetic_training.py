@@ -5,8 +5,8 @@ from main import Main
 from os import listdir
 import time
 import pickle
+from math import inf
 
-from utils.replay_logger import ReplayLogger
 
 if __name__ != '__main__':
     exit(0)
@@ -26,15 +26,15 @@ args = parser.parse_args()
 # Constants
 NB_GENES = 12
 POP_SIZE = 15
-TOURNAMENT_SIZE = 3
+TOURNAMENT_SIZE = 4
 SELECTION_PRESSURE = 0.99
-NB_PARENTS = 4  # 8
-NB_CHILDREN = 12
-MUTATION_RATE = 0.01
-BREADING_RATE = 0.5
-NB_ITERATIONS = 12
-CROSS_ALPHA = [0.5, 1.5, -0.3]
-CROSS_BETA = [0.5, -0.5, 1.5]
+NB_PARENTS = 5
+NB_CHILDREN = 5
+MUTATION_RATE = 0.1
+BREADING_RATE = 0.9
+NB_ITERATIONS = 40
+CROSS_ALPHA = [1.5]
+CROSS_BETA = [-0.5]
 
 main = Main(args.map_path, 'utility', 'utility', verbose=True)
 print(f'Training on map {args.map_path}')
@@ -52,7 +52,7 @@ def select_parent_indexes(population, nb_parents=NB_PARENTS, pressure=SELECTION_
     print(f'Selecting {nb_parents} parents')
     # parent selection through tournament
     parents = []
-    tested_indexes = set()
+    game_lengths = [[] for i in population]
     while len(parents) < nb_parents:
         print('\nlen(parents)', len(parents))
         # participants selection
@@ -61,7 +61,6 @@ def select_parent_indexes(population, nb_parents=NB_PARENTS, pressure=SELECTION_
             rd = random.randint(0, POP_SIZE - 1)
             if rd not in participants:
                 participants.append(rd)
-                tested_indexes.add(rd)
 
         print('starting tournament with', len(participants), 'participants')
 
@@ -78,16 +77,20 @@ def select_parent_indexes(population, nb_parents=NB_PARENTS, pressure=SELECTION_
                 main.reset()
                 main.set_teams_utility_parameters(population[p1], population[p2])
                 i = 0
-                while main.cycle() and i < 15:
+                while main.cycle() and not main.is_repeating() and i < 50:
                     i += 1
-                if main.get_winning_team_number() == 0:
-                    results[participants.index(p1)][participants.index(p2)] += 1
-                    results[participants.index(p2)][participants.index(p1)] -= 1
-                else:
-                    results[participants.index(p1)][participants.index(p2)] -= 1
-                    results[participants.index(p2)][participants.index(p1)] += 1
-                ReplayLogger().save_replay()
-                exit()
+                if main.environment.is_game_over():
+                    if main.get_winning_team_number() == 0:
+                        results[participants.index(p1)][participants.index(p2)] += 1
+                        results[participants.index(p2)][participants.index(p1)] -= 1
+                    else:
+                        results[participants.index(p1)][participants.index(p2)] -= 1
+                        results[participants.index(p2)][participants.index(p1)] += 1
+                if main.is_repeating():
+                    game_lengths[p1].append(250)
+                    game_lengths[p1].append(250)
+                game_lengths[p1].append(i)
+                game_lengths[p2].append(i)
         print()
 
         # best selection
@@ -96,13 +99,17 @@ def select_parent_indexes(population, nb_parents=NB_PARENTS, pressure=SELECTION_
             max_index = scores.index(max(scores))
             if random.random() < pressure * ((1 - pressure) ** i):
                 parents.append(max_index)
+                print('max_index', max_index)
             scores[max_index] = -tournament_size
+
+    for line in game_lengths:
+        print(line)
 
     if len(parents) > NB_PARENTS:
         parents = parents[:NB_PARENTS]
     if include_results:
-        return parents, tested_indexes, results
-    return parents, tested_indexes
+        return parents, game_lengths, results
+    return parents, game_lengths
 
 
 def cross_breading(population, parent_indexes) -> list[tuple[int]]:
@@ -113,8 +120,8 @@ def cross_breading(population, parent_indexes) -> list[tuple[int]]:
         rd = random.randint(0, NB_PARENTS - 1)
         if rd > BREADING_RATE:  # probability for sterility
             continue
-        parent1 = i % NB_PARENTS
-        parent2 = (i + 1) % NB_PARENTS
+        parent1 = parent_indexes[i % len(parent_indexes)]
+        parent2 = parent_indexes[(i + 1) % len(parent_indexes)]
         for j in range(len(CROSS_ALPHA)):
             k = random.randrange(NB_GENES)  # random gene index
             gene = CROSS_ALPHA[j] * population[parent1][k] + CROSS_BETA[j] * population[parent2][k]
@@ -157,7 +164,7 @@ while len(population) < POP_SIZE:
 for iter in range(NB_ITERATIONS):
     print('\nIteration', iter)
     # select parents
-    parent_indexes, population_tested_indexes = select_parent_indexes(population)
+    parent_indexes, game_lengths = select_parent_indexes(population)
     # crossover
     children = cross_breading(population, parent_indexes)
     # mutation
@@ -166,10 +173,27 @@ for iter in range(NB_ITERATIONS):
     new_population = []
     new_population += children
     new_population += mutants
+    # add untested individuals
+    for i in range(POP_SIZE):
+        if game_lengths[i] == []:
+            new_population.append(population[i])
+    print('new pop is :')
+    print(f'\t{len(children)} children')
+    print(f'\t{len(mutants)} mutants')
+    print(f'\t{len(new_population) - len(children) - len(mutants)} untested individuals')
+    print(f'\t{POP_SIZE - len(new_population)} from the best tested individuals')
+    print()
+    # add best tested individuals
+    average_length_of_games = []
+    for i in range(POP_SIZE):
+        if game_lengths[i] == []:
+            average_length_of_games.append(inf)
+        else:
+            average_length_of_games.append(sum(game_lengths[i]) / len(game_lengths[i]))
     while len(new_population) < POP_SIZE:
-        rd = random.randrange(POP_SIZE)
-        if rd not in population_tested_indexes:
-            new_population.append(population[rd])
+        min_index = average_length_of_games.index(min(average_length_of_games))
+        new_population.append(population[min_index])
+        average_length_of_games[min_index] = inf
     # set new population
     population = copy.deepcopy(new_population)
 
