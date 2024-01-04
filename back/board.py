@@ -27,10 +27,10 @@ class Board:
         assert isinstance(board[0][0], Cell)
 
         self._cells = board
-        self._height = len(self._cells[0])
-        self._width = len(self._cells)
+        self._height = len(self._cells)
+        self._width = len(self._cells[0])
 
-    def set_cell(self, position: (int, int), value: Cell) -> None:
+    def set_cell(self, position: tuple[int, int], value: Cell) -> None:
         """Set a cell's value
 
         :param position: position of the cell to set
@@ -122,7 +122,7 @@ class Board:
         """
         return (self._width, self._height)
 
-    def get_legal_move(self, position: (int, int)) -> list[Direction]:
+    def get_legal_move(self, position: tuple[int, int]) -> list[Direction]:
         """
         Get all the move that the agent is able to do in a given position (x, y)
 

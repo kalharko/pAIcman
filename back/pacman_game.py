@@ -47,7 +47,6 @@ class PacmanGame():
 
         # load board
         board_description = lines[lines.index('|\n') + 1:]
-        self._board_manager.load(board_description)
         self._board_manager.load(board_description, path)
 
         # load agents
@@ -126,9 +125,9 @@ class PacmanGame():
         # update team's perception
         self._agent_manager.update_perceptions(self._board_manager)
 
-        ## check collision
-        #collisions = self._board_manager.get_collisions(self._agent_manager.get_all_agents())
-        #for col in collisions:
+        # check collision
+        # collisions = self._board_manager.get_collisions(self._agent_manager.get_all_agents())
+        # for col in collisions:
         #    agent = self._agent_manager.get_agent(col[0])
         #    # collision with cell
         #    if isinstance(col[1], Cell):
