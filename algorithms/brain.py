@@ -10,7 +10,6 @@ from back.cell import Cell
 from back.team import Team
 
 
-
 class Brain:
     _agentManager: AgentManager
     _already_visited: list[tuple[int, int]]
@@ -82,7 +81,6 @@ class Brain:
                 chosenDirection = direction
                 bestScore = exploration_score
 
-        # print(chosenDirection)
         return Action(agent_id, chosenDirection)
 
     def get_exploration_score(self, perception: Perception, agent_id: str, position: (int, int),

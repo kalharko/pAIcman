@@ -1,4 +1,5 @@
 # import pickle
+import pickle
 from utils.action import Action
 
 from utils.singleton import SingletonMeta
@@ -59,8 +60,7 @@ class ReplayLogger(metaclass=SingletonMeta):
         """
         return (self.replay_path_map, self.replay_comments, self.replay_steps)
 
-    def reset_replay(self) -> None:
-        self.replay_path_map = ''
+    def reset(self) -> None:
         self.replay_comments = []
         self.replay_steps = []
 
@@ -70,5 +70,5 @@ class ReplayLogger(metaclass=SingletonMeta):
         :param path: path to where the file should be saved
         :type path: str
         """
-        # TODO ? surely not useful
-        pass
+
+        pickle.dump(self.get_replay(), open(path, 'wb'))

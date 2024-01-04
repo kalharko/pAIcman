@@ -157,4 +157,4 @@ class Board:
             for x in range(self._width):
                 out += translation[self._cells[x][y]]
             out += '\n'
-        return out
+        return out.rstrip('\n')

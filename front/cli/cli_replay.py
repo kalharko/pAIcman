@@ -18,8 +18,11 @@ class CliReplay():
     _comments: list[list[str]]
     _theme: str
 
-    def __init__(self, theme: str) -> None:
-        self._map_path, self._comments, self._steps = ReplayLogger().get_replay()
+    def __init__(self, replay: tuple[str, list[list[str]], list[list[Action]]] = None, theme: str = 'dark') -> None:
+        if replay is not None:
+            self._map_path, self._comments, self._steps = replay
+        else:
+            self._map_path, self._comments, self._steps = ReplayLogger().get_replay()
         self._game = PacmanGame()
         self._game.load_map(self._map_path)
         self._theme = theme
@@ -118,7 +121,7 @@ class CliReplay():
 
         # agents team 2
         x, y = team2.get_pacman().get_position()
-        self._screen.addstr(y + 1, x + 1, char_pacman[team1.get_pacman().get_last_direction()], curses.color_pair(7))
+        self._screen.addstr(y + 1, x + 1, char_pacman[team2.get_pacman().get_last_direction()], curses.color_pair(7))
         for ghost in team2.get_ghosts():
             x, y = ghost.get_position()
             self._screen.addstr(y + 1, x + 1, char_ghost, curses.color_pair(8))

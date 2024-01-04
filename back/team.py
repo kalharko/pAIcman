@@ -14,6 +14,7 @@ class Team():
     _ghosts: list[Ghost]
     _perception: Perception
     _score: int
+    _utility_parameters: list[float]
 
     def __init__(self, board_size: tuple[int, int]) -> None:
         """Team's initialization
@@ -30,6 +31,7 @@ class Team():
         self._perception = Perception(board_size)
         self._score = 0
         self._team_number = None
+        self._utility_parameters = None
 
     def set_pacman(self, value: Pacman) -> None:
         """Set the team's pacman
@@ -114,6 +116,33 @@ class Team():
         :rtype: int
         """
         return self._score
+
+    def get_team_number(self) -> int:
+        """Get the team's number
+
+        :return: the team's number
+        :rtype: int
+        """
+        return self._team_number
+
+    def get_utility_parameters(self) -> list[float]:
+        """Get the team's utility parameters
+        :return: the team's utility parameters
+        :rtype: list[float]
+        """
+        return self._utility_parameters
+
+    def set_utility_parameters(self, value: tuple[float]) -> None:
+        """Set the team's utility parameters
+
+        :param value: the team's utility parameters
+        :type value: tuple[float]
+        """
+        assert isinstance(value, tuple)
+        assert len(value) == 12
+        assert isinstance(value[0], float)
+
+        self._utility_parameters = value
 
     def update_perception(self, board_manager: BoardManager, other_team: 'Team') -> None:
         """Update the team's perception
