@@ -9,6 +9,7 @@ class StrategyBrain:
 
     _agentManager: AgentManager
     _team: Team
+    _distances: dict[tuple[int]: dict[tuple[int]: int]]
 
     # Hyper parameters
     _STRATEGY_AGRESSION_PAC_DOT_RANGE: int
@@ -23,7 +24,7 @@ class StrategyBrain:
     _STRATEGY_DEFENCE_PACMAN_DIST: int
     _STRATEGY_AGRESSION_PACMAN_DIST: int
 
-    def __init__(self, agent_manager: AgentManager, team: Team):
+    def __init__(self, agent_manager: AgentManager, team: Team, distance: distances: dict[tuple[int]: dict[tuple[int]: int]]) -> None:
         """StrategyBrain's initialization
         :param agent_manager: the agentManager of the game
         :type agent_manager: AgentManager
@@ -33,6 +34,7 @@ class StrategyBrain:
 
         self._agentManager = agent_manager
         self._team = team
+        self._distances = distances
 
         # define hyper parameters
 
@@ -106,12 +108,31 @@ class StrategyBrain:
         return True
 
     def allie_pacman_distance(self, agent: Agent) -> int:
-        # TODO : Oscar
-        return 0
+        """Returns the distance between the agent the team's pacman
+
+        :param agent: the agent we want to know the team's pacman distance to
+        :type agent: Agent
+        :return: the distance between the agent and the team's pacman
+        :rtype: int
+        """
+
+        return self._distances[self._team.get_pacman().get_position()][agent.get_position()]
 
     def ennemi_pacman_distance(self, agent: Agent) -> int:
-        # TODO : Oscar
-        return 0
+        """Returns the distance between an agent and the annemy's pacman
+
+        :param agent: the agent we want to know the ennemy's pacman distance to
+        :type agent: Agent
+        :return: the distance between the agent and the ennemy's pacman
+        :rtype: int
+        """
+        perception = self._team.get_perception()
+        sighting = perception.get_pacman_sighting()
+        if sighting == []:
+            return 100  # TODO: chose what to return if the enemy's pacman has never been seen
+
+        enemy_pacman = sighting[0][1]
+        return self._distances[enemy_pacman.get_position()][agent.get_position()]
 
     def is_enemy_invincible(self) -> bool:
         # TODO : implement
