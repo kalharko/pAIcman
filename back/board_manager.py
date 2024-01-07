@@ -1,8 +1,12 @@
 import copy
+import os
+import pickle
+from algorithms.a_star import AStar
 from back.perception import Perception
 from back.cell import Cell
 from back.board import Board
 from back.agent import Agent
+from utils.distance_matrix import DistanceMatrix
 
 
 class BoardManager():
@@ -10,11 +14,13 @@ class BoardManager():
     """
     _board: Board
     _initial_board: Board
+    _path_to_board: str
 
     def __init__(self) -> None:
         self._board = Board()
+        self._path_to_board = None
 
-    def load(self, source: list[str]) -> None:
+    def load(self, source: list[str], path: str) -> None:
         """Load board from extracted file information
 
         :param source: list of lines read in the map file
@@ -32,7 +38,7 @@ class BoardManager():
             'P': Cell['WALL']
         }
 
-        cells = [[Cell['EMPTY'] for y in range(len(source))] for x in range(len(source[0]))]
+        cells = [[Cell['EMPTY'] for y in range(len(source))] for x in range(len(source[0].rstrip('\n')))]
 
         y = 0
         for line in source:
@@ -42,6 +48,7 @@ class BoardManager():
                 x += 1
             y += 1
         self._board.set_board(cells)
+        self._path_to_board = path
         self._initial_board = copy.deepcopy(self._board)
 
     def get_cell(self, position: tuple[int, int]) -> Cell:
@@ -140,9 +147,14 @@ class BoardManager():
             cur_x = x + dx * distance
             cur_y = y + dy * distance
             while (0 <= cur_x < width and 0 <= cur_y < height):
+                print(cur_x, cur_y)
                 board.set_cell((cur_x, cur_y), self._board.get_cell((cur_x, cur_y)))
-                board.set_cell((cur_x + dy, cur_y + dx), self._board.get_cell((cur_x + dy, cur_y + dx)))
-                board.set_cell((cur_x - dy, cur_y - dx), self._board.get_cell((cur_x - dy, cur_y - dx)))
+                if dy == 0:
+                    board.set_cell((cur_x, cur_y + dy), self._board.get_cell((cur_x, cur_y + dy)))
+                    board.set_cell((cur_x, cur_y - dy), self._board.get_cell((cur_x, cur_y - dy)))
+                if dx == 0:
+                    board.set_cell((cur_x + dx, cur_y), self._board.get_cell((cur_x + dx, cur_y)))
+                    board.set_cell((cur_x - dx, cur_y), self._board.get_cell((cur_x - dx, cur_y)))
 
                 if self._board.get_cell((cur_x, cur_y)) == Cell['WALL']:
                     break
@@ -176,3 +188,58 @@ class BoardManager():
                 if self._board.get_cell((x, y)) == Cell['PAC_DOT']:
                     return False
         return True
+
+    def get_board_distances(self) -> DistanceMatrix:
+        files = os.listdir('maps/distances/')
+        save_file_name = os.path.basename(self._path_to_board).rstrip('.txt') + '_distances.pkl'
+        if save_file_name in files:
+            return DistanceMatrix(pickle.load(open('maps/distances/' + save_file_name, 'rb')))
+
+        return DistanceMatrix(self.pre_compute_board_distances())
+
+    def pre_compute_board_distances(self) -> DistanceMatrix:
+        """Precompute the distance matrix of all the non wall coordinates in a map. Saves it as a pickle file.
+
+        :param path: path to the map file for wich precomputing is necessary
+        :type path: str
+        """
+
+        print("\nPrecomputing the board's distance matrix")
+        # find all positions to include in the matrix
+        width, height = self._board.get_size()
+        positions = []
+        for y in range(height):
+            for x in range(width):
+                if self._board.get_cell((x, y)) != Cell['WALL']:
+                    positions.append((x, y))
+
+        # initialize a star
+        astar = AStar()
+        astar.load_board(self._board)
+
+        # compute
+        out = dict()
+        for pos1 in positions:
+            print('\rProgress', positions.index(pos1), '/', len(positions), end='')
+            for pos2 in positions:
+                if pos1 == pos2:
+                    pass
+
+                if pos1 not in out.keys():
+                    out[pos1] = dict()
+                if pos2 not in out.keys():
+                    out[pos2] = dict()
+
+                if pos2 in out[pos1].keys():
+                    continue
+
+                distance = astar.distance(pos1, pos2)
+                out[pos1][pos2] = distance
+                out[pos2][pos1] = distance
+
+        # save
+        path = 'maps/distances/' + os.path.basename(self._path_to_board).rstrip('.txt') + '_distances.pkl'
+        pickle.dump(out, open(path, 'wb'))
+        print('\nPrecomputing done\ndistancest saved at', path, '\n')
+
+        return out

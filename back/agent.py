@@ -104,7 +104,7 @@ class Agent():
             x, y = 0, 1
         elif direction == Direction['LEFT']:
             x, y = -1, 0
-        else :
+        else:
             x, y = 0, 0
 
         self._x += x
@@ -130,7 +130,7 @@ class Agent():
             x, y = 0, 1
         elif direction == Direction['LEFT']:
             x, y = -1, 0
-        else :
+        else:
             x, y = 0, 0
 
         return (self._x + x, self._y + y)
@@ -140,6 +140,14 @@ class Agent():
         """
         self._x = self._start_x
         self._y = self._start_y
+
+    def reset(self) -> None:
+        """More potent than respawn, called when the game is restarted
+        """
+        self.respawn()
+        self._alive = True
+        self._last_direction = Direction['UP']
+        self._score = 0
 
     def get_team(self) -> int:
         """Get the agent's team id
