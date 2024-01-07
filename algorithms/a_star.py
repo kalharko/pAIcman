@@ -34,5 +34,5 @@ class AStar():
     def first_step_of_path(self, start: tuple[int], goal: tuple[int]) -> Direction:
         first_movement = self.path(start, goal)[0]
         # diff premier mouvement moins le start pour avoir la direction
-        first_direction = (first_movement[0] - start[0], first_movement[1] - start[1]) #tuple
-        return Direction[first_direction]
+        first_direction = (first_movement[0] - start[0], first_movement[1] - start[1])  # tuple
+        return Direction(first_direction)

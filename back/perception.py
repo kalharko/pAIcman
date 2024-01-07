@@ -13,6 +13,7 @@ class Perception():
     _board: Board
     _pacman_sighting: list[int, Pacman]  # [time since sighting, Pacman]
     _ghost_sightings: dict[str: list[int, Ghost]]  # id: [time since sighting, Ghost]]
+    _pac_gum_sightings: dict[tuple[int]: int]  # {(x, y): time since sighting}
     _last_cell_seen: list[tuple[int, int]]  # x, y
 
     def __init__(self, board_size: tuple[int, int]) -> None:
@@ -31,6 +32,7 @@ class Perception():
         self._last_cell_seen = []
         self._pacman_sighting = None
         self._ghost_sightings = {}
+        self._pac_gum_sightings = {}
 
     def set_board(self, board: Board) -> None:
         """Set the perception's board
@@ -70,6 +72,15 @@ class Perception():
                     continue
                 if (x, y) not in self._last_cell_seen:
                     self._last_cell_seen.append((x, y))
+                if other_board.get_cell((x, y)) == Cell['PAC_GUM']:
+                    self._pac_gum_sightings[(x, y)] = 0
+                if (x, y) in self._pac_gum_sightings.keys():
+                    del self._pac_gum_sightings[(x, y)]
+                if (x, y) in self._ghost_sightings.keys():
+                    del self._ghost_sightings[(x, y)]
+                if self._pacman_sighting is not None:
+                    if (x, y) == self._pacman_sighting[1].get_position():
+                        self._pacman_sighting = None
 
                 self._board.set_cell((x, y), other_board.get_cell((x, y)))
         # update Pacman seen
@@ -96,6 +107,14 @@ class Perception():
         :rtype: list[tuple[int]]
         """
         return self._last_cell_seen
+
+    def get_pac_gum_sightings(self) -> list[tuple[int]]:
+        """Get the perception's PacGum sighting
+
+        :return: the PacGum sighting
+        :rtype: list[int] [time since sighting, x, y]
+        """
+        return self._pac_gum_sightings
 
     def get_sightings(self) -> list[list[int, Agent]]:
         """Get the perception's sighting of ghosts and pacman combined

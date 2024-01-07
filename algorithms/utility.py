@@ -186,11 +186,11 @@ class Utility():
 
         # distance to score gain
         pacman_pos = positions[(team.get_pacman().get_id(), team.get_team_number(), 1)]
-        min_dist_to_score = closest_cell(pacman_pos[0], pacman_pos[1], Cell['PAC_DOT'], board)
+        min_dist_to_score = closest_cell(pacman_pos, Cell['PAC_DOT'], board)
 
         # distance from decisional agent to unknown cell
         x, y = positions[(decisional_agent.get_id(), team.get_team_number(), 1 if isinstance(decisional_agent, Pacman) else 0)]
-        min_dist_to_unknown = closest_cell(x, y, Cell['UNKNOWN'], board)
+        min_dist_to_unknown = closest_cell((x, y), Cell['UNKNOWN'], board)
 
         # team's and other team's danger level
         danger = 0

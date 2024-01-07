@@ -1,9 +1,8 @@
+from algorithms.strategy_brain import StrategyBrain
 from algorithms.utility import Utility
 from back.pacman_game import PacmanGame
-from back.pacman import Pacman
 from algorithms.pacman_brain import PacmanBrain
 from algorithms.ghost_brain import GhostBrain
-from utils.strategy import Strategy
 from argparse import ArgumentParser
 from utils.replay_logger import ReplayLogger
 import time
@@ -40,8 +39,9 @@ class Main():
         ReplayLogger().log_map(map_path)
 
         # brains
-        self.brain_ghost = GhostBrain(self.environment.get_agent_manager())
-        self.brain_pacman = PacmanBrain(self.environment.get_agent_manager())
+        self.brain_ghost = GhostBrain(self.environment.get_board_distances())
+        self.brain_pacman = PacmanBrain(self.environment.get_board_distances())
+        self.strategy_brain = StrategyBrain(self.environment.get_board_distances())
 
         # other
         self.utility = Utility(self.environment.get_board_distances())
@@ -59,32 +59,46 @@ class Main():
 
         # different decision systems
         actions = []
-        if self._team1_decision_algo != self._team2_decision_algo:  # utility vs strategy triangle
-            # utility
-            actions = self.utility.run(team_a)
-            # strategy triangle
-            strat_team_b = ((agent, Strategy['RANDOM']) for agent in team_b.get_agents())
-            for agent, strat in strat_team_b:
-                if isinstance(agent, Pacman):
-                    actions.append(self.brain_pacman.compute_action(strat, team_b, agent.get_id()))
+
+        ReplayLogger().log_comment('Team a')
+        if self._team1_decision_algo == 'utility':
+            actions += self.utility.run(team_a)
+        elif self._team1_decision_algo == 'behaviors':
+            log = ''
+            strategies = self.strategy_brain.compute_team_strategy(team_a)
+            for agent_id, strategy in strategies.items():
+                log += agent_id + ' ' + strategy.name + ', '
+                if agent_id == team_a.get_pacman().get_id():
+                    actions.append(self.brain_pacman.compute_action(strategy, team_a, agent_id))
                 else:
-                    actions.append(self.brain_ghost.compute_action(strat, team_b, agent.get_id()))
-        elif self._team1_decision_algo == self._team2_decision_algo and self._team1_decision_algo == 'utility':  # utility vs utility
-            actions = self.utility.run(team_a)
+                    actions.append(self.brain_ghost.compute_action(strategy, team_a, agent_id))
+            ReplayLogger().log_comment(log)
+
+        # log actions
+        log = ''
+        for action in actions:
+            log += action.id + ' ' + action.direction.name + ', '
+        ReplayLogger().log_comment(log)
+        ReplayLogger().log_comment('\nTeam b')
+
+        if self._team2_decision_algo == 'utility':
             actions += self.utility.run(team_b)
-        else:  # strategy triangle vs strategy triangle
-            strat_team_a = ((agent, Strategy['AGRESSION']) for agent in team_a.get_agents())
-            strat_team_b = ((agent, Strategy['AGRESSION']) for agent in team_b.get_agents())
-            for agent, strat in strat_team_a:
-                if isinstance(agent, Pacman):
-                    actions.append(self.brain_pacman.compute_action(strat, team_a, agent.get_id()))
+        elif self._team2_decision_algo == 'behaviors':
+            log = ''
+            strategies = self.strategy_brain.compute_team_strategy(team_b)
+            for agent_id, strategy in strategies.items():
+                log += agent_id + ' ' + strategy.name + ', '
+                if agent_id == team_b.get_pacman().get_id():
+                    actions.append(self.brain_pacman.compute_action(strategy, team_b, agent_id))
                 else:
-                    actions.append(self.brain_ghost.compute_action(strat, team_a, agent.get_id()))
-            for agent, strat in strat_team_b:
-                if isinstance(agent, Pacman):
-                    actions.append(self.brain_pacman.compute_action(strat, team_b, agent.get_id()))
-                else:
-                    actions.append(self.brain_ghost.compute_action(strat, team_b, agent.get_id()))
+                    actions.append(self.brain_ghost.compute_action(strategy, team_b, agent_id))
+            ReplayLogger().log_comment(log)
+
+        # log actions
+        log = ''
+        for action in actions:
+            log += action.id + ' ' + action.direction.name + ', '
+        ReplayLogger().log_comment(log)
 
         # apply to environment
         self.environment.step(actions)
@@ -150,8 +164,8 @@ if __name__ == '__main__':
                         default='utility',
                         type=str)
     parser.add_argument('-t2', '--team2_decision_algo',
-                        help='which decision system to use for the team 2 default to strategy_triangle',
-                        default='strategy_triangle',
+                        help='which decision system to use for the team 2 default to behaviors',
+                        default='behaviors',
                         type=str)
     parser.add_argument('-c', '--color',
                         help='chose color theme, possible values : dark, light',
