@@ -25,6 +25,7 @@ class Team():
         assert isinstance(board_size, tuple)
         assert len(board_size) == 2
         assert isinstance(board_size[0], int)
+        assert isinstance(board_size[1], int)
 
         self._pacman = None
         self._ghosts = []
@@ -163,7 +164,7 @@ class Team():
         """Reset all the agents in the team, and the team score
         """
         for agent in self.get_agents():
-            agent.respawn()
+            agent.reset()
         self._score = 0
 
     def __str__(self) -> str:
