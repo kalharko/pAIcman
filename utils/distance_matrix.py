@@ -1,11 +1,13 @@
 from back.cell import Cell
 from back.perception import Perception
-from utils.direction import Direction
 
 
 class DistanceMatrix:
     def __init__(self, distances: dict[tuple[int], dict[tuple[int], int]]) -> None:
         self.distances = distances
+
+    def _manhatan(self, pos1, pos2) -> int:
+        return abs(pos1[0] - pos2[0]) + abs(pos1[1] - pos2[1])
 
     def get_distance(self, perception: Perception, position1: tuple[int], position2: tuple[int]) -> int:
         assert isinstance(perception, Perception)
@@ -21,9 +23,6 @@ class DistanceMatrix:
         width, height = board.get_size()
         added_distance = 0
 
-        def manhatan(pos1, pos2) -> int:
-            return abs(pos1[0] - pos2[0]) + abs(pos1[1] - pos2[1])
-
         if board.get_cell(position1) == Cell['UNKNOWN']:
             # find the closest known cell
             closest_position = None
@@ -32,7 +31,7 @@ class DistanceMatrix:
                 for x in range(width):
                     if board.get_cell((x, y)) in (Cell['UNKNOWN'], Cell['WALL']):
                         continue
-                    if (dist := manhatan((x, y), position1)) < closest_distance:
+                    if (dist := self.manhatan((x, y), position1)) < closest_distance:
                         closest_position = (x, y)
                         closest_distance = dist
             position1 = closest_position
@@ -46,7 +45,7 @@ class DistanceMatrix:
                 for x in range(width):
                     if board.get_cell((x, y)) in (Cell['UNKNOWN'], Cell['WALL']):
                         continue
-                    if (dist := manhatan((x, y), position2)) < closest_distance:
+                    if (dist := self.manhatan((x, y), position2)) < closest_distance:
                         closest_position = (x, y)
                         closest_distance = dist
             position2 = closest_position
