@@ -73,8 +73,8 @@ class Main():
             actions = self.utility.run(team_a)
             actions += self.utility.run(team_b)
         else:  # strategy triangle vs strategy triangle
-            strat_team_a = ((agent, Strategy['EXPLORATION']) for agent in team_a.get_agents())
-            strat_team_b = ((agent, Strategy['EXPLORATION']) for agent in team_b.get_agents())
+            strat_team_a = ((agent, Strategy['AGRESSION']) for agent in team_a.get_agents())
+            strat_team_b = ((agent, Strategy['AGRESSION']) for agent in team_b.get_agents())
             for agent, strat in strat_team_a:
                 if isinstance(agent, Pacman):
                     actions.append(self.brain_pacman.compute_action(strat, team_a, agent.get_id()))

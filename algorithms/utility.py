@@ -20,7 +20,7 @@ class Utility():
                            Direction['DOWN'],
                            Direction['LEFT'])
 
-        self.default_params = pickle.load(open('data/genetic/best_individuals/best_params.pkl', 'rb'))
+        self.default_params = pickle.load(open('data/genetic/best_individuals/old_params.pkl', 'rb'))
         self.a_star = AStar()
 
     def run(self, team: Team) -> list[Action]:
