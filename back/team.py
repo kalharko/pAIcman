@@ -25,6 +25,7 @@ class Team():
         assert isinstance(board_size, tuple)
         assert len(board_size) == 2
         assert isinstance(board_size[0], int)
+        assert isinstance(board_size[1], int)
 
         self._pacman = None
         self._ghosts = []

@@ -6,6 +6,7 @@ from back.perception import Perception
 from back.cell import Cell
 from back.board import Board
 from back.agent import Agent
+from utils.distance_matrix import DistanceMatrix
 
 
 class BoardManager():
@@ -146,9 +147,14 @@ class BoardManager():
             cur_x = x + dx * distance
             cur_y = y + dy * distance
             while (0 <= cur_x < width and 0 <= cur_y < height):
+                print(cur_x, cur_y)
                 board.set_cell((cur_x, cur_y), self._board.get_cell((cur_x, cur_y)))
-                board.set_cell((cur_x + dy, cur_y + dx), self._board.get_cell((cur_x + dy, cur_y + dx)))
-                board.set_cell((cur_x - dy, cur_y - dx), self._board.get_cell((cur_x - dy, cur_y - dx)))
+                if dy == 0:
+                    board.set_cell((cur_x, cur_y + dy), self._board.get_cell((cur_x, cur_y + dy)))
+                    board.set_cell((cur_x, cur_y - dy), self._board.get_cell((cur_x, cur_y - dy)))
+                if dx == 0:
+                    board.set_cell((cur_x + dx, cur_y), self._board.get_cell((cur_x + dx, cur_y)))
+                    board.set_cell((cur_x - dx, cur_y), self._board.get_cell((cur_x - dx, cur_y)))
 
                 if self._board.get_cell((cur_x, cur_y)) == Cell['WALL']:
                     break
@@ -183,15 +189,15 @@ class BoardManager():
                     return False
         return True
 
-    def get_board_distances(self) -> dict[tuple[int, int]: dict[tuple[int, int]: int]]:
+    def get_board_distances(self) -> DistanceMatrix:
         files = os.listdir('maps/distances/')
         save_file_name = os.path.basename(self._path_to_board).rstrip('.txt') + '_distances.pkl'
         if save_file_name in files:
-            return pickle.load(open('maps/distances/' + save_file_name, 'rb'))
+            return DistanceMatrix(pickle.load(open('maps/distances/' + save_file_name, 'rb')))
 
-        return self.pre_compute_board_distances()
+        return DistanceMatrix(self.pre_compute_board_distances())
 
-    def pre_compute_board_distances(self) -> dict[tuple[int, int]: dict[tuple[int, int]: int]]:
+    def pre_compute_board_distances(self) -> DistanceMatrix:
         """Precompute the distance matrix of all the non wall coordinates in a map. Saves it as a pickle file.
 
         :param path: path to the map file for wich precomputing is necessary

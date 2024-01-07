@@ -27,8 +27,8 @@ class Board:
         assert isinstance(board[0][0], Cell)
 
         self._cells = board
-        self._height = len(self._cells)
-        self._width = len(self._cells[0])
+        self._height = len(self._cells[0])
+        self._width = len(self._cells)
 
     def set_cell(self, position: tuple[int, int], value: Cell) -> None:
         """Set a cell's value

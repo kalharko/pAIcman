@@ -11,6 +11,8 @@ from back.ghost import Ghost
 
 import os.path as os_path
 
+from utils.distance_matrix import DistanceMatrix
+
 
 class PacmanGame():
     """Root class of this pacman game inplementation
@@ -294,7 +296,7 @@ class PacmanGame():
         """
         return self._agent_manager
 
-    def get_board_distances(self) -> dict[tuple[int, int]: dict[tuple[int, int], int]]:
+    def get_board_distances(self) -> DistanceMatrix:
         return self._board_manager.get_board_distances()
 
     def is_game_over(self) -> bool:

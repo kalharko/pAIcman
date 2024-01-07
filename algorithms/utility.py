@@ -10,12 +10,13 @@ from utils.action import Action
 from utils.direction import Direction
 from back.cell import Cell
 from random import random
+from utils.distance_matrix import DistanceMatrix
 from utils.replay_logger import ReplayLogger
 
 
 class Utility():
 
-    def __init__(self, distances: dict[tuple[int]: dict[tuple[int]: int]]) -> None:
+    def __init__(self, distances: DistanceMatrix) -> None:
         self.directions = (Direction['UP'],
                            Direction['RIGHT'],
                            Direction['DOWN'],
@@ -72,7 +73,7 @@ class Utility():
                     if board.get_cell((x, y)) == Cell['WALL']:
                         continue
                     # second, more precise check of distance
-                    if self._distances[(x, y)][(og_x, og_y)] > how_long_ago + 2:
+                    if self._distances.get_distance(perception, (x, y), (og_x, og_y)) > how_long_ago + 2:
                         continue
                     # random chance to skip this position
                     if random() > 1 / (how_long_ago + 1 / 2 + nb_skipped):
@@ -197,21 +198,21 @@ class Utility():
         # team's pacman
         if team.get_pacman().is_invicible():  # is invicible
             for ghost in enemy_ghosts:
-                other_team_danger += self._distances[positions[ghost]][positions[team_pacman]]
+                other_team_danger += self._distances.get_distance(perception, positions[ghost], positions[team_pacman])
             for ghost in team_ghosts:
-                danger += self._distances[positions[ghost]][positions[team_pacman]]
+                danger += self._distances.get_distance(perception, positions[ghost], positions[team_pacman])
         else:  # is vulnerable
             for ghost in team_ghosts + enemy_ghosts:
-                danger += self._distances[positions[ghost]][positions[team_pacman]]
+                danger += self._distances.get_distance(perception, positions[ghost], positions[team_pacman])
         # enemy's pacman
         if enemy_pacman is not None:
             if team.get_ghosts()[0].is_vulnerable():  # is not vulnerable
                 for ghost in enemy_ghosts:
-                    other_team_danger += self._distances[positions[ghost]][positions[enemy_pacman]]
+                    other_team_danger += self._distances.get_distance(perception, positions[ghost], positions[enemy_pacman])
                 for ghost in team_ghosts:
-                    danger += self._distances[positions[ghost]][positions[enemy_pacman]]
+                    danger += self._distances.get_distance(perception, positions[ghost], positions[enemy_pacman])
             else:  # is vulnerable
                 for ghost in enemy_ghosts + team_ghosts:
-                    other_team_danger += self._distances[positions[ghost]][positions[enemy_pacman]]
+                    other_team_danger += self._distances.get_distance(perception, positions[ghost], positions[enemy_pacman])
 
         return [-min_dist_to_score, -min_dist_to_unknown, danger, -other_team_danger]
