@@ -17,53 +17,39 @@ class DistanceMatrix:
         assert isinstance(position2[0], int)
         assert isinstance(position2[1], int)
 
-        print('get_distance_matrix', position1, position2)
-
         board = perception.get_board()
         width, height = board.get_size()
         added_distance = 0
+
+        def manhatan(pos1, pos2) -> int:
+            return abs(pos1[0] - pos2[0]) + abs(pos1[1] - pos2[1])
+
         if board.get_cell(position1) == Cell['UNKNOWN']:
-            # find the known cell closest to position1
+            # find the closest known cell
             closest_position = None
-            closest_distances = 1000
-            for direction in Direction:
-                if direction in (Direction['NONE'], Direction['RESPAWN']):
-                    continue
-                dx, dy = direction.value
-                d = 0
-                x = position1[0] + d * dx
-                y = position1[1] + d * dy
-                while 0 <= x < width and 0 <= y < height and board.get_cell((x, y)) in (Cell['WALL'], Cell['UNKNOWN']):
-                    d += 1
-                    x = position1[0] + d * dx
-                    y = position1[1] + d * dy
-                if 0 <= x < width and 0 <= y < height and board.get_cell((x, y)) in (Cell['PAC_DOT'], Cell['PAC_GUM'], Cell['EMPTY']):
-                    if d < closest_distances:
-                        closest_position = (position1[0] + d * dx, position1[1] + d * dy)
-                        closest_distances = d
+            closest_distance = 10000
+            for y in range(height):
+                for x in range(width):
+                    if board.get_cell((x, y)) in (Cell['UNKNOWN'], Cell['WALL']):
+                        continue
+                    if (dist := manhatan((x, y), position1)) < closest_distance:
+                        closest_position = (x, y)
+                        closest_distance = dist
             position1 = closest_position
-            added_distance += closest_distances
+            added_distance += closest_distance
 
         if board.get_cell(position2) == Cell['UNKNOWN']:
-            # find the known cell closest to position2
+            # find the closest known cell
             closest_position = None
-            closest_distances = 1000
-            for direction in Direction:
-                if direction in (Direction['NONE'], Direction['RESPAWN']):
-                    continue
-                dx, dy = direction.value
-                d = 0
-                x = position2[0] + d * dx
-                y = position2[1] + d * dy
-                while 0 <= x < width and 0 <= y < height and board.get_cell((x, y)) in (Cell['WALL'], Cell['UNKNOWN']):
-                    d += 1
-                    x = position2[0] + d * dx
-                    y = position2[1] + d * dy
-                if 0 <= x < width and 0 <= y < height and board.get_cell((x, y)) in (Cell['PAC_DOT'], Cell['PAC_GUM'], Cell['EMPTY']):
-                    if d < closest_distances:
-                        closest_position = (position2[0] + d * dx, position2[1] + d * dy)
-                        closest_distances = d
+            closest_distance = 10000
+            for y in range(height):
+                for x in range(width):
+                    if board.get_cell((x, y)) in (Cell['UNKNOWN'], Cell['WALL']):
+                        continue
+                    if (dist := manhatan((x, y), position2)) < closest_distance:
+                        closest_position = (x, y)
+                        closest_distance = dist
             position2 = closest_position
-            added_distance += closest_distances
+            added_distance += closest_distance
 
         return self.distances[position1][position2] + added_distance

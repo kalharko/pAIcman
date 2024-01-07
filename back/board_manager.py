@@ -147,14 +147,13 @@ class BoardManager():
             cur_x = x + dx * distance
             cur_y = y + dy * distance
             while (0 <= cur_x < width and 0 <= cur_y < height):
-                print(cur_x, cur_y)
                 board.set_cell((cur_x, cur_y), self._board.get_cell((cur_x, cur_y)))
                 if dy == 0:
-                    board.set_cell((cur_x, cur_y + dy), self._board.get_cell((cur_x, cur_y + dy)))
-                    board.set_cell((cur_x, cur_y - dy), self._board.get_cell((cur_x, cur_y - dy)))
+                    board.set_cell((cur_x, cur_y + 1), self._board.get_cell((cur_x, cur_y + 1)))
+                    board.set_cell((cur_x, cur_y - 1), self._board.get_cell((cur_x, cur_y - 1)))
                 if dx == 0:
-                    board.set_cell((cur_x + dx, cur_y), self._board.get_cell((cur_x + dx, cur_y)))
-                    board.set_cell((cur_x - dx, cur_y), self._board.get_cell((cur_x - dx, cur_y)))
+                    board.set_cell((cur_x + 1, cur_y), self._board.get_cell((cur_x + 1, cur_y)))
+                    board.set_cell((cur_x - 1, cur_y), self._board.get_cell((cur_x - 1, cur_y)))
 
                 if self._board.get_cell((cur_x, cur_y)) == Cell['WALL']:
                     break
