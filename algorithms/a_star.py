@@ -1,3 +1,4 @@
+import random
 from astar.search import AStar as ImportedAStar
 from back.board import Board
 from back.cell import Cell
@@ -32,7 +33,9 @@ class AStar():
         return self.astar.search(start, goal)
 
     def first_step_of_path(self, start: tuple[int], goal: tuple[int]) -> Direction:
-        #print(self.path(start, goal)[1])
+        if start == goal:
+            print('astar with start equal to goal')
+            return random.choice((Direction['UP'], Direction['DOWN'], Direction['LEFT'], Direction['RIGHT']))
         first_movement = self.path(start, goal)[1]
         # diff premier mouvement moins le start pour avoir la direction
         first_direction = (first_movement[0] - start[0], first_movement[1] - start[1])  # tuple
