@@ -3,6 +3,7 @@ from back.cell import Cell
 from back.perception import Perception
 from back.team import Team
 from utils.distance_matrix import DistanceMatrix
+from utils.replay_logger import ReplayLogger
 from utils.strategy import Strategy
 from algorithms.flood_fill import closest_cell
 
@@ -24,13 +25,12 @@ class StrategyBrain:
 
     _STRATEGY_DEFENCE_PACMAN_DIST: int
     _STRATEGY_AGRESSION_PACMAN_DIST: int
+    _STRATEGY_DEFENCE_PACMAN_COLLISION_DIST: int
 
     def __init__(self, distances: DistanceMatrix) -> None:
         """StrategyBrain's initialization
-        :param agent_manager: the agentManager of the game
-        :type agent_manager: AgentManager
-        :param team : the team object of the team to compute
-        :type team: Team
+        :param distances : teh distance matrix between agents
+        :type distances : DistanceMatrix
         """
 
         self._distances = distances
@@ -48,8 +48,9 @@ class StrategyBrain:
         self._STRATEGY_DEFENCE_ENEMY_AMOUNT = 1
         self._STRATEGY_DEFENCE_ENEMY_PACMAN = False
 
-        self._STRATEGY_DEFENCE_PACMAN_DIST = 20
+        self._STRATEGY_DEFENCE_PACMAN_DIST = 10
         self._STRATEGY_AGRESSION_PACMAN_DIST = 20
+        self._STRATEGY_DEFENCE_PACMAN_COLLISION_DIST = 3
 
     def compute_team_strategy(self, team: Team) -> dict[str, Strategy]:
         """For a certain team of the pac man game give the strategy (
@@ -67,7 +68,9 @@ class StrategyBrain:
         pacman = team.get_pacman()
 
         # if (Pac dot close AND Enemy close) OR Invincible mode active -> then AGRESSION
-        if (closest_cell(pacman.get_position(), Cell['PAC_DOT'], board) < self._STRATEGY_AGRESSION_PAC_DOT_RANGE and self.is_enemy_close(pacman, perception)) or pacman.is_invicible():
+        if ((closest_cell(pacman.get_position(), Cell['PAC_DOT'], board) < self._STRATEGY_AGRESSION_PAC_DOT_RANGE
+             and self.is_enemy_close(pacman, perception))
+                or pacman.is_invicible()):
             strategy[pacman.get_id()] = Strategy.AGRESSION
 
         # elif Enemy close -> then DEFENCE
@@ -80,9 +83,13 @@ class StrategyBrain:
 
         # Compute for the ghosts
         for ghost in team.get_ghosts():
-            # if allie pac man in defence strategy and close OR enemy pac man invincible -> then Defence
-            if (strategy[pacman.get_id()] == Strategy.DEFENSE and self.allie_pacman_distance(
-                    ghost) <= self._STRATEGY_DEFENCE_PACMAN_DIST or self.is_enemy_invincible(team)):
+            # if allie pac man in defence strategy and close OR allie pac-man collisionable OR enemy pac man
+            # invincible -> then Defence
+            #ReplayLogger().log_comment("allie pac man dist : " + self.allie_pacman_distance(ghost, team).__str__())
+            if (strategy[pacman.get_id()] == Strategy.DEFENSE
+                    and self.allie_pacman_distance(ghost, team) <= self._STRATEGY_DEFENCE_PACMAN_DIST
+                    or self.allie_pacman_distance(ghost, team) <= self._STRATEGY_DEFENCE_PACMAN_COLLISION_DIST
+                    or self.is_enemy_invincible(team)):
                 strategy[ghost.get_id()] = Strategy.DEFENSE
 
             # elif enemy pac man close -> Agression
@@ -105,23 +112,27 @@ class StrategyBrain:
             sightings += perception.get_pacman_sighting()
 
         for enemy in sightings:
-            if self._distances.get_distance(perception, agent.get_position(), enemy[1].get_position()) <= self._STRATEGY_AGRESSION_ENEMY_RANGE:
+            if self._distances.get_distance(perception, agent.get_position(),
+                                            enemy[1].get_position()) <= self._STRATEGY_AGRESSION_ENEMY_RANGE:
                 nb_enemy_in_range += 1
                 if nb_enemy_in_range >= self._STRATEGY_DEFENCE_ENEMY_AMOUNT:
                     return True
 
         return False
 
-    def allie_pacman_distance(self, agent: Agent) -> int:
+    def allie_pacman_distance(self, agent: Agent, team: Team) -> int:
         """Returns the distance between the agent the team's pacman
 
         :param agent: the agent we want to know the team's pacman distance to
         :type agent: Agent
+        :param team : the team object of the team we are working on
+        :type team : Team
         :return: the distance between the agent and the team's pacman
         :rtype: int
         """
 
-        return self._distances[self._team.get_pacman().get_position()][agent.get_position()]
+        return self._distances.get_distance(team.get_perception(), agent.get_position(),
+                                            team.get_pacman().get_position())
 
     def ennemi_pacman_distance(self, agent: Agent, team: Team) -> int:
         """Returns the distance between an agent and the annemy's pacman

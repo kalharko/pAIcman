@@ -46,17 +46,27 @@ class Brain:
         assert isinstance(team, Team)
         assert isinstance(agent_id, str)
 
+        ReplayLogger().log_comment('\n' + agent_id + ": " + strategy.__str__())
+
         if strategy == Strategy['RANDOM']:
-            return Action(agent_id, random.choice(list(Direction)))
+            direction = Action(agent_id, random.choice(list(Direction)))
+            ReplayLogger().log_comment(direction.__str__())
+            return direction
 
         if strategy == Strategy['EXPLORATION']:
-            return self._exploration(team, agent_id)
+            direction = self._exploration(team, agent_id)
+            ReplayLogger().log_comment(direction.__str__())
+            return direction
 
         if strategy == Strategy['AGRESSION']:
-            return self._agression(team, agent_id)
+            direction = self._agression(team, agent_id)
+            ReplayLogger().log_comment(direction.__str__())
+            return direction
 
         if strategy == Strategy['DEFENSE']:
-            return self._defense(team, agent_id)
+            direction = self._defense(team, agent_id)
+            ReplayLogger().log_comment(direction.__str__())
+            return direction
 
     def _exploration(self, team: Team, agent_id: str) -> Action:
         """Give the best exploration action for the given agent
@@ -71,7 +81,6 @@ class Brain:
 
         bestScore = None
         chosenDirection = None
-        ReplayLogger().log_comment('\n' + agent_id)
         perception = team.get_perception()
         opposite_dir = team.get_pacman().get_last_direction()
         opposite_dir = Direction((opposite_dir.value[0] * -1, opposite_dir.value[1] * -1))
@@ -79,7 +88,7 @@ class Brain:
         for direction in self.get_legal_move(perception, team.get_agent(agent_id).get_position()):  # TODO : shuffle the order of move
             self._already_visited = [team.get_pacman().get_position()]
             exploration_score = self.get_exploration_score(perception, agent_id, team.get_agent(agent_id).get_position(), direction)
-            ReplayLogger().log_comment(str(direction) + ' ' + str(exploration_score))
+            ReplayLogger().log_comment(str(direction) + ' ' + str(round(exploration_score, 2)))
             if bestScore is None or exploration_score >= bestScore:
                 chosenDirection = direction
                 bestScore = exploration_score

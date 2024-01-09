@@ -5,6 +5,7 @@ from back.team import Team
 from utils.action import Action
 from utils.direction import Direction
 from utils.distance_matrix import DistanceMatrix
+from utils.replay_logger import ReplayLogger
 
 
 class GhostBrain(Brain):
@@ -34,14 +35,14 @@ class GhostBrain(Brain):
         best_distance = 1000
         x, y = team.get_agent(agent_id).get_position()
         pacman_pos = team.get_pacman().get_position()
-        for direction in Direction:
-            if direction in (Direction['NONE'], Direction['RESPAWN']):
-                continue
+        for direction in self.get_legal_move(team.get_perception(), (x, y)):
             dx, dy = direction.value
-            distance = self._distances.get_distance((x + dx, y + dy), pacman_pos)
+            distance = self._distances.get_distance(team.get_perception(),  (x + dx, y + dy), pacman_pos)
+            ReplayLogger().log_comment(direction.__str__() + ": "+ distance.__str__()+ "-> " + abs(distance - self._DEFENSE_DISTANCE_TO_PACMAN).__str__()
+                                       +"< " + best_distance.__str__())
             if abs(distance - self._DEFENSE_DISTANCE_TO_PACMAN) < best_distance:
                 best_direction = direction
-                best_distance = distance
+                best_distance = abs(distance - self._DEFENSE_DISTANCE_TO_PACMAN)
 
         return Action(agent_id, best_direction)
 

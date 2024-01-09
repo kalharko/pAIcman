@@ -67,41 +67,24 @@ class Main():
         if self._team1_decision_algo == 'utility':
             actions += self.utility.run(team_a)
         elif self._team1_decision_algo == 'behaviors':
-            log = ''
             strategies = self.strategy_brain.compute_team_strategy(team_a)
             for agent_id, strategy in strategies.items():
-                log += agent_id + ' ' + strategy.name + ', '
                 if agent_id == team_a.get_pacman().get_id():
                     actions.append(self.brain_pacman.compute_action(strategy, team_a, agent_id))
                 else:
                     actions.append(self.brain_ghost.compute_action(strategy, team_a, agent_id))
-            ReplayLogger().log_comment(log)
 
-        # log actions
-        log = ''
-        for action in actions:
-            log += action.id + ' ' + action.direction.name + ', '
-        ReplayLogger().log_comment(log)
         ReplayLogger().log_comment('\nTeam b')
 
         if self._team2_decision_algo == 'utility':
             actions += self.utility.run(team_b)
         elif self._team2_decision_algo == 'behaviors':
-            log = ''
             strategies = self.strategy_brain.compute_team_strategy(team_b)
             for agent_id, strategy in strategies.items():
-                log += agent_id + ' ' + strategy.name + ', '
                 if agent_id == team_b.get_pacman().get_id():
                     actions.append(self.brain_pacman.compute_action(strategy, team_b, agent_id))
                 else:
                     actions.append(self.brain_ghost.compute_action(strategy, team_b, agent_id))
-            ReplayLogger().log_comment(log)
-
-        # log actions
-        log = ''
-        for action in actions:
-            log += action.id + ' ' + action.direction.name + ', '
-        ReplayLogger().log_comment(log)
 
         # apply to environment
         self.environment.step(actions)
