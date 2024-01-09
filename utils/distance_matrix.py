@@ -31,7 +31,7 @@ class DistanceMatrix:
                 for x in range(width):
                     if board.get_cell((x, y)) in (Cell['UNKNOWN'], Cell['WALL']):
                         continue
-                    if (dist := self.manhatan((x, y), position1)) < closest_distance:
+                    if (dist := self._manhatan((x, y), position1)) < closest_distance:
                         closest_position = (x, y)
                         closest_distance = dist
             position1 = closest_position
@@ -45,7 +45,7 @@ class DistanceMatrix:
                 for x in range(width):
                     if board.get_cell((x, y)) in (Cell['UNKNOWN'], Cell['WALL']):
                         continue
-                    if (dist := self.manhatan((x, y), position2)) < closest_distance:
+                    if (dist := self._manhatan((x, y), position2)) < closest_distance:
                         closest_position = (x, y)
                         closest_distance = dist
             position2 = closest_position

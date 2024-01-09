@@ -22,7 +22,7 @@ class Utility():
                            Direction['DOWN'],
                            Direction['LEFT'])
 
-        self.default_params = pickle.load(open('data/genetic/best_individuals/20240103-121329.pkl', 'rb'))
+        self.default_params = pickle.load(open('data/genetic/best_individuals/old_params.pkl', 'rb'))
         self._distances = distances
 
     def run(self, team: Team) -> list[Action]:
@@ -120,7 +120,7 @@ class Utility():
                     positions[positions.index(None)] = action
                     util = self.utility(positions, all_ids, team, decisional_agent)
                     for i, x in enumerate(util):
-                        eu += params[i * 3] * x ** 2 + params[i * 3 + 1] * x + params[i * 3 + 2]
+                        eu += params[i * 3] * (x ** 2) + params[i * 3 + 1] * x + params[i * 3 + 2]
                     eu *= probability
                 expected_utilities.append(eu)
                 ReplayLogger().log_comment(f'{action} : {util}\t\t{eu}\n{positions}')

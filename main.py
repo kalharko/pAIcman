@@ -4,6 +4,7 @@ from back.pacman_game import PacmanGame
 from algorithms.pacman_brain import PacmanBrain
 from algorithms.ghost_brain import GhostBrain
 from argparse import ArgumentParser
+from utils.action import Action
 from utils.replay_logger import ReplayLogger
 import time
 
@@ -19,6 +20,7 @@ class Main():
     scenario: int
     _team1_decision_algo: str
     _team2_decision_algo: str
+    _small_history: list[list[Action]]
 
     def __init__(self, map_path: str, team1_decision_algo: str, team2_decision_algo: str, verbose: bool = True) -> None:
         """Main initialization
@@ -46,6 +48,7 @@ class Main():
         # other
         self.utility = Utility(self.environment.get_board_distances())
         self.verbose = verbose
+        self._small_history = []
         if self.verbose:
             ReplayLogger().log_map(map_path)
 
@@ -104,6 +107,10 @@ class Main():
         self.environment.step(actions)
         # save for replay
         ReplayLogger().log_step(actions)
+        # save for is repeating function
+        self._small_history.append(actions)
+        if len(self._small_history) == 5:
+            self._small_history = self._small_history[1:]
         # return wether the game is over or not
         return not self.environment.is_game_over()
 
@@ -131,6 +138,7 @@ class Main():
     def reset(self) -> None:
         """Reset the game
         """
+        self._small_history = []
         self.environment.reset()
         ReplayLogger().reset()
 
@@ -148,8 +156,15 @@ class Main():
         :return: wether or not the game is repeating
         :rtype: bool
         """
+        if len(self._small_history) < 4:
+            return False
 
-        return ReplayLogger().is_repeating()
+        if all([a1.id == a2.id and a1.direction == a2.direction for a1, a2 in zip(self._small_history[-4], self._small_history[-2])]):
+            if all([a1.id == a2.id and a1.direction == a2.direction for a1, a2 in zip(self._small_history[-3], self._small_history[-1])]):
+                # commet
+                return True
+
+        return False
 
 
 if __name__ == '__main__':

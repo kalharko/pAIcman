@@ -16,7 +16,7 @@ parser = ArgumentParser(prog='Utility Genetic Training for Paicman',
                         epilog='epilog')
 parser.add_argument('-m', '--map_path',
                     help='path to the map to use',
-                    default='maps/6x9.txt')
+                    default='maps/9x9.txt')
 parser.add_argument('-b', '--include_best',
                     help='include the best individual in the initial population',
                     default=False,)
@@ -25,16 +25,19 @@ args = parser.parse_args()
 
 # Constants
 NB_GENES = 12
-POP_SIZE = 15
-TOURNAMENT_SIZE = 4
+POP_SIZE = 16
+TOURNAMENT_SIZE = 5
 SELECTION_PRESSURE = 0.99
-NB_PARENTS = 5
+NB_PARENTS = 3
 NB_CHILDREN = 5
 MUTATION_RATE = 0.1
 BREADING_RATE = 0.9
-NB_ITERATIONS = 40
-CROSS_ALPHA = [1.5]
-CROSS_BETA = [-0.5]
+NB_ITERATIONS = 55
+CROSS_ALPHA = [1.5, -0.6]
+CROSS_BETA = [-0.5, 1.7]
+
+# plot info
+log_rewards = []
 
 main = Main(args.map_path, 'utility', 'utility', verbose=True)
 print(f'Training on map {args.map_path}')
@@ -53,6 +56,7 @@ def select_parent_indexes(population, nb_parents=NB_PARENTS, pressure=SELECTION_
     # parent selection through tournament
     parents = []
     game_lengths = [[] for i in population]
+    log_max_reward = 0
     while len(parents) < nb_parents:
         print('\nlen(parents)', len(parents))
         # participants selection
@@ -71,7 +75,6 @@ def select_parent_indexes(population, nb_parents=NB_PARENTS, pressure=SELECTION_
             for p2 in participants:
                 if p1 == p2:
                     continue
-                print('\r|  ', debug_i, end='')
                 debug_i += 1
                 # setup match
                 main.reset()
@@ -80,18 +83,30 @@ def select_parent_indexes(population, nb_parents=NB_PARENTS, pressure=SELECTION_
                 while main.cycle() and not main.is_repeating() and i < 50:
                     i += 1
                 if main.environment.is_game_over():
+                    p1_score = main.environment.get_agent_manager().get_team_score(1)
+                    p2_score = main.environment.get_agent_manager().get_team_score(2)
+                    reward = abs(p1_score - p2_score)
+                    log_max_reward = max(log_max_reward, reward)
                     if main.get_winning_team_number() == 0:
-                        results[participants.index(p1)][participants.index(p2)] += 1
-                        results[participants.index(p2)][participants.index(p1)] -= 1
+                        results[participants.index(p1)][participants.index(p2)] += reward
+                        results[participants.index(p2)][participants.index(p1)] -= reward
                     else:
-                        results[participants.index(p1)][participants.index(p2)] -= 1
-                        results[participants.index(p2)][participants.index(p1)] += 1
-                if main.is_repeating():
+                        results[participants.index(p1)][participants.index(p2)] -= reward
+                        results[participants.index(p2)][participants.index(p1)] += reward
+                elif main.is_repeating():
+                    print('\r|  ', debug_i, end='')
                     game_lengths[p1].append(250)
-                    game_lengths[p1].append(250)
+                    game_lengths[p2].append(250)
+                    results[participants.index(p1)][participants.index(p2)] -= 4
+                    results[participants.index(p2)][participants.index(p1)] -= 4
+                else:
+                    print('\r|  ', debug_i, 'not repeating', end='')
+                    results[participants.index(p1)][participants.index(p2)] -= 1
+                    results[participants.index(p2)][participants.index(p1)] -= 1
                 game_lengths[p1].append(i)
                 game_lengths[p2].append(i)
         print()
+        log_rewards.append(log_max_reward)
 
         # best selection
         scores = [sum(line) for line in results]
@@ -101,9 +116,6 @@ def select_parent_indexes(population, nb_parents=NB_PARENTS, pressure=SELECTION_
                 parents.append(max_index)
                 print('max_index', max_index)
             scores[max_index] = -tournament_size
-
-    for line in game_lengths:
-        print(line)
 
     if len(parents) > NB_PARENTS:
         parents = parents[:NB_PARENTS]
@@ -150,14 +162,16 @@ def mutations(children) -> list[tuple[int]]:
 
 # initial population
 population = []
+population.append(tuple((float(value) for value in tuple(pickle.load(open('data/genetic/best_individuals/old_params.pkl', 'rb'))))))
+population.append(tuple(pickle.load(open('data/genetic/best_individuals/20240108-044352.pkl', 'rb'))))
 if args.include_best:
     best_paths = listdir('data/genetic/best_individuals/')
     print('Including best individuals')
     i = 0
     while i < min(NB_PARENTS // 2, len(best_paths)):
-        population.append(tuple(pickle.load(open(best_paths[i], 'rb'))))
+        population.append(tuple(pickle.load(open('data/genetic/best_individuals/' + best_paths[i], 'rb'))))
         i += 1
-    population.append(tuple(pickle.load(open(best_paths[-1], 'rb'))))
+    population.append(tuple(pickle.load(open('data/genetic/best_individuals/' + best_paths[-1], 'rb'))))
 while len(population) < POP_SIZE:
     population.append(tuple((random.random() for i in range(NB_GENES))))
 
@@ -212,3 +226,8 @@ print()
 # save best individual
 print(best)
 pickle.dump(best, open('data/genetic/best_individuals/' + time.strftime("%Y%m%d-%H%M%S") + '.pkl', 'wb'))
+pickle.dump(best, open('data/genetic/lastest_individual.pkl', 'wb'))
+
+
+# save log_rewards for later plot
+pickle.dump(log_rewards, open('data/genetic/log_rewards.pkl', 'wb'))

@@ -109,6 +109,18 @@ class AgentManager():
             out += list(team.get_ids())
         return tuple(out)
 
+    def get_team_score(self, team_number: int) -> int:
+        """Get team's score
+
+        :param team_number: team number
+        :type team_number: int
+        :return: team's score
+        :rtype: int
+        """
+        assert isinstance(team_number, int)
+
+        return self._teams[team_number - 1].get_score()
+
     def reset(self) -> None:
         """Reset both teams
         """

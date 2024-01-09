@@ -116,7 +116,7 @@ class Team():
         :return: the team's score
         :rtype: int
         """
-        return self._score
+        return self._pacman.get_score()
 
     def get_team_number(self) -> int:
         """Get the team's number

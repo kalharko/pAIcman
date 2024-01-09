@@ -312,7 +312,7 @@ class PacmanGame():
         if self._board_manager.is_game_over() is True:
             self._is_game_over = True
             t1, t2 = self._agent_manager.get_teams()
-            self.winning_team = 0 if t1.get_score > t2.get_score() else 1
+            self.winning_team = 0 if t1.get_score() > t2.get_score() else 1
         if self._agent_manager.is_game_over() is True:
             self._is_game_over = True
             t1, t2 = self._agent_manager.get_teams()
