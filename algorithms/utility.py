@@ -22,7 +22,35 @@ class Utility():
                            Direction['DOWN'],
                            Direction['LEFT'])
 
-        self.default_params = pickle.load(open('data/genetic/best_individuals/old_params.pkl', 'rb'))
+        # self.default_params = pickle.load(open('data/genetic/best_individuals/old_params.pkl', 'rb'))
+        # self.default_params = (
+        #     0,  # distance to score
+        #     -0.33,
+        #     0,
+        #     0,  # distance to unknown
+        #     -0.33,
+        #     0,
+        #     0,  # team's distance to danger
+        #     0.5,
+        #     0,
+        #     0,  # other team's distance to danger
+        #     -0.5,
+        #     0
+        # )
+        self.default_params = (
+            0.003,  # distance to score
+            -0.19,
+            3,
+            0.0015,  # distance to unknown
+            -0.093,
+            2,
+            -0.002,  # team's distance to danger
+            0.12,
+            0,
+            0.0009,  # other team's distance to danger
+            -0.12,
+            3
+        )
         self._distances = distances
 
     def run(self, team: Team) -> list[Action]:
@@ -123,7 +151,8 @@ class Utility():
                         eu += params[i * 3] * (x ** 2) + params[i * 3 + 1] * x + params[i * 3 + 2]
                     eu *= probability
                 expected_utilities.append(eu)
-                ReplayLogger().log_comment(f'{action} : {util}\t\t{eu}\n{positions}')
+                util = [round(params[i * 3] * (x ** 2) + params[i * 3 + 1] * x + params[i * 3 + 2], 2) for i, x in enumerate(util)]
+                ReplayLogger().log_comment(f'{action} : {util}\t\t{eu}')
 
             # choose max expected utility
             chosen_action = possible_positions[decisional_agent_id][expected_utilities.index(max(expected_utilities))]
@@ -192,27 +221,44 @@ class Utility():
         x, y = positions[(decisional_agent.get_id(), team.get_team_number(), 1 if isinstance(decisional_agent, Pacman) else 0)]
         min_dist_to_unknown = closest_cell((x, y), Cell['UNKNOWN'], board)
 
-        # team's and other team's danger level
-        danger = 0
-        other_team_danger = 0
-        # team's pacman
-        if team.get_pacman().is_invicible():  # is invicible
-            for ghost in enemy_ghosts:
-                other_team_danger += self._distances.get_distance(perception, positions[ghost], positions[team_pacman])
-            for ghost in team_ghosts:
-                danger += self._distances.get_distance(perception, positions[ghost], positions[team_pacman])
-        else:  # is vulnerable
-            for ghost in team_ghosts + enemy_ghosts:
-                danger += self._distances.get_distance(perception, positions[ghost], positions[team_pacman])
-        # enemy's pacman
-        if enemy_pacman is not None:
-            if team.get_ghosts()[0].is_vulnerable():  # is not vulnerable
-                for ghost in enemy_ghosts:
-                    other_team_danger += self._distances.get_distance(perception, positions[ghost], positions[enemy_pacman])
-                for ghost in team_ghosts:
-                    danger += self._distances.get_distance(perception, positions[ghost], positions[enemy_pacman])
-            else:  # is vulnerable
-                for ghost in enemy_ghosts + team_ghosts:
-                    other_team_danger += self._distances.get_distance(perception, positions[ghost], positions[enemy_pacman])
+        # # team's and other team's danger level
+        # danger = 0
+        # other_team_danger = 0
+        # # team's pacman
+        # if team.get_pacman().is_invicible():  # is invicible
+        #     for ghost in enemy_ghosts:
+        #         other_team_danger += self._distances.get_distance(perception, positions[ghost], positions[team_pacman])
+        #     for ghost in team_ghosts:
+        #         danger += self._distances.get_distance(perception, positions[ghost], positions[team_pacman])
+        # else:  # is vulnerable
+        #     for ghost in team_ghosts + enemy_ghosts:
+        #         danger += self._distances.get_distance(perception, positions[ghost], positions[team_pacman])
+        # # enemy's pacman
+        # if enemy_pacman is not None:
+        #     if team.get_ghosts()[0].is_vulnerable():  # is not vulnerable
+        #         for ghost in enemy_ghosts:
+        #             other_team_danger += self._distances.get_distance(perception, positions[ghost], positions[enemy_pacman])
+        #         for ghost in team_ghosts:
+        #             danger += self._distances.get_distance(perception, positions[ghost], positions[enemy_pacman])
+        #     else:  # is vulnerable
+        #         for ghost in enemy_ghosts + team_ghosts:
+        #             other_team_danger += self._distances.get_distance(perception, positions[ghost], positions[enemy_pacman])
 
-        return [-min_dist_to_score, -min_dist_to_unknown, danger, -other_team_danger]
+        # min_dist_to_danger
+        if team.get_pacman().is_invicible():  # is invicible
+            distances = [self._distances.get_distance(perception, positions[ghost], positions[team_pacman]) for ghost in team_ghosts]
+        else:  # is vulnerable
+            distances = [self._distances.get_distance(perception, positions[ghost], positions[team_pacman]) for ghost in team_ghosts + enemy_ghosts]
+        min_dist_to_danger = min(distances, default=0)
+
+        # other team's min dist to danger
+        if enemy_pacman is not None:
+            if team.get_ghosts()[0].is_vulnerable():
+                other_team_min_dist_danger = 0
+            else:
+                distances = [self._distances.get_distance(perception, positions[ghost], positions[enemy_pacman]) for ghost in team_ghosts]
+                other_team_min_dist_danger = min(distances, default=0)
+        else:
+            other_team_min_dist_danger = 0
+
+        return [min_dist_to_score, min_dist_to_unknown, min_dist_to_danger, other_team_min_dist_danger]
