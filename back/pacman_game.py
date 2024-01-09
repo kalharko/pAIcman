@@ -109,6 +109,10 @@ class PacmanGame():
                                 self._board_manager.set_cell(agent.get_position(), Cell['EMPTY'])
                             elif col == Cell['PAC_GUM']:
                                 agent.eat_pacgum()
+                                agentList = self._agent_manager.get_all_agents()
+                                for agentIterator in agentList:
+                                    if (isinstance(agentIterator, Ghost) and agentIterator.get_team() != agent.get_team()):
+                                        agentIterator.set_vulnerability(True)
                                 self._board_manager.set_cell(agent.get_position(), Cell['EMPTY'])
             else:
                 # if action is invalid, will try to redo last action
@@ -266,6 +270,17 @@ class PacmanGame():
         if action.direction == Direction.RESPAWN:
             agent.respawn()
         else:
+            if (isinstance(agent, Pacman) and agent.is_invicible()):
+                if not agent.invicibility_left():
+
+                    agentList = self._agent_manager.get_all_agents()
+                    for agentIterator in agentList:
+                        if (isinstance(agentIterator, Ghost) and agentIterator.get_team() != agent.get_team()):
+                            agentIterator.set_vulnerability(False)
+
+                    agent.vulnerable()
+                else:
+                    agent.reduce_invicibility()
             agent.move(action.direction)
 
     def get_board_size(self) -> tuple[int, int]:

@@ -112,11 +112,12 @@ class StrategyBrain:
             sightings += perception.get_pacman_sighting()
 
         for enemy in sightings:
-            if self._distances.get_distance(perception, agent.get_position(),
-                                            enemy[1].get_position()) <= self._STRATEGY_AGRESSION_ENEMY_RANGE:
-                nb_enemy_in_range += 1
-                if nb_enemy_in_range >= self._STRATEGY_DEFENCE_ENEMY_AMOUNT:
-                    return True
+            if enemy[1].is_alive():
+                if self._distances.get_distance(perception, agent.get_position(),
+                                                enemy[1].get_position()) <= self._STRATEGY_AGRESSION_ENEMY_RANGE:
+                    nb_enemy_in_range += 1
+                    if nb_enemy_in_range >= self._STRATEGY_DEFENCE_ENEMY_AMOUNT:
+                        return True
 
         return False
 
