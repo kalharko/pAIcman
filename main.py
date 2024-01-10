@@ -175,15 +175,15 @@ if __name__ == '__main__':
     main = Main(args.map_path, args.team1_decision_algo, args.team2_decision_algo)
     print(f'Playing on map {args.map_path}, with team1 using {args.team1_decision_algo} and team2 using {args.team2_decision_algo}')
     i = 0
-    while i < 100:
+    while i < 1000:
         start_time = time.time()
         print('\riteration :', i, end='')
         if not main.cycle():
             print('\nGame Over')
             break
-        if main.is_repeating():
-            print('\nIs repeating')
-            break
+        #if main.is_repeating():
+        #    print('\nIs repeating')
+        #    break
         i += 1
         if time.time() - start_time > 5:
             print('\nToo long, stopping')

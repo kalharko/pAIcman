@@ -46,26 +46,26 @@ class Brain:
         assert isinstance(team, Team)
         assert isinstance(agent_id, str)
 
-        ReplayLogger().log_comment('\n' + agent_id + ": " + strategy.__str__())
+        ReplayLogger().log_comment('\n' + agent_id + team.get_agent(agent_id).get_position().__str__() + ": " + strategy.name.__str__())
 
         if strategy == Strategy['RANDOM']:
             direction = Action(agent_id, random.choice(list(Direction)))
-            ReplayLogger().log_comment(direction.__str__())
+            ReplayLogger().log_comment("Choosen Action : " + direction.name.__str__())
             return direction
 
         if strategy == Strategy['EXPLORATION']:
             direction = self._exploration(team, agent_id)
-            ReplayLogger().log_comment(direction.__str__())
+            ReplayLogger().log_comment("Choosen Action : " + direction.direction.name.__str__())
             return direction
 
         if strategy == Strategy['AGRESSION']:
             direction = self._agression(team, agent_id)
-            ReplayLogger().log_comment(direction.__str__())
+            ReplayLogger().log_comment("Choosen Action : " + direction.direction.name.__str__())
             return direction
 
         if strategy == Strategy['DEFENSE']:
             direction = self._defense(team, agent_id)
-            ReplayLogger().log_comment(direction.__str__())
+            ReplayLogger().log_comment("Choosen Action : " + direction.direction.name.__str__())
             return direction
 
     def _exploration(self, team: Team, agent_id: str) -> Action:
@@ -88,7 +88,7 @@ class Brain:
         for direction in self.get_legal_move(perception, team.get_agent(agent_id).get_position()):  # TODO : shuffle the order of move
             self._already_visited = [team.get_pacman().get_position()]
             exploration_score = self.get_exploration_score(perception, agent_id, team.get_agent(agent_id).get_position(), direction)
-            ReplayLogger().log_comment(str(direction) + ' ' + str(round(exploration_score, 2)))
+            ReplayLogger().log_comment(str(direction.name) + ' -> ' + str(round(exploration_score, 2)))
             if bestScore is None or exploration_score >= bestScore:
                 chosenDirection = direction
                 bestScore = exploration_score
@@ -127,8 +127,8 @@ class Brain:
                 score = self._EXPLORATION_LAST_CELL_VISITED_SCORE
             self._already_visited.append(copy.copy(next_cell))
             for direction in ((0, 1), (0, -1), (1, 0), (-1, 0)):
-                score += self.get_exploration_score(perception, agent_id, next_cell, Direction(direction))
-            return score * self._EXPLORATION_FORGETTING_RATE
+                score += self.get_exploration_score(perception, agent_id, next_cell, Direction(direction))* (1-self._EXPLORATION_FORGETTING_RATE)
+            return score
 
     def get_legal_move(self, perception: Perception, position: tuple[int, int]) -> list[Direction]:
         """get the legal move that the agent can do

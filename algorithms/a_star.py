@@ -34,7 +34,7 @@ class AStar():
 
     def first_step_of_path(self, start: tuple[int], goal: tuple[int]) -> Direction:
         if start == goal:
-            print('astar with start equal to goal')
+            #print('astar with start equal to goal')
             return random.choice((Direction['UP'], Direction['DOWN'], Direction['LEFT'], Direction['RIGHT']))
         first_movement = self.path(start, goal)[1]
         # diff premier mouvement moins le start pour avoir la direction

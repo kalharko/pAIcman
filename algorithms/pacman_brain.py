@@ -16,14 +16,14 @@ class PacmanBrain(Brain):
         super().__init__(distance_matrix)
 
         # defense hyper parameters
-        self._DEFENSER_MIN_DISTANCE_TO_GHOST = 4
+        self._DEFENSER_MIN_DISTANCE_TO_GHOST = 5
 
         # define hyper parameters
         self._EXPLORATION_FORGETTING_RATE = 0.1
-        self._EXPLORATION_PAC_GUM_SCORE = 1
-        self._EXPLORATION_PAC_DOT_SCORE = -1
+        self._EXPLORATION_PAC_GUM_SCORE = -10
+        self._EXPLORATION_PAC_DOT_SCORE = 2
         self._EXPLORATION_UNKNOWN_CELL_SCORE = 1
-        self._EXPLORATION_LAST_CELL_VISITED_SCORE = -5
+        self._EXPLORATION_LAST_CELL_VISITED_SCORE = -3
 
     def _agression(self, team: Team, agent_id: str) -> Action:
         """Give the best agressive action for the given agent
@@ -52,6 +52,7 @@ class PacmanBrain(Brain):
             nearest_ghost = min(ghosts, key=lambda ghost: self._distances.get_distance(perception, ghost[1].get_position(), pacman.get_position()))
 
             direction = a_star.first_step_of_path(pacman.get_position(), nearest_ghost[1].get_position())
+            ReplayLogger().log_comment("Pac-Man invincible\nTry Kill " + nearest_ghost[1].get_id() + " at " + nearest_ghost[1].get_position())
             return Action(agent_id, direction)
         else:
             # find the closest pacgum
@@ -96,12 +97,19 @@ class PacmanBrain(Brain):
             new_dist_to_ghost = self._distances.get_distance(perception, (x + direction[0], y + direction[1]), nearest_ghost[1].get_position())
             # direction is not accepted if distance to ghost is too close and direction gets closer to ghost
             if new_dist_to_ghost < dist_to_ghost and new_dist_to_ghost <= self._DEFENSER_MIN_DISTANCE_TO_GHOST:
+                ReplayLogger().log_comment("Try reach pac gum at" + closest_pacgum_pos +
+                                         "\nBut " + nearest_ghost[1].get_id() +
+                                         " at " +nearest_ghost[1].get_position() + " block the way")
                 legal_moves = self.get_legal_move(perception, pacman.get_position())
                 legal_moves.remove(direction)
                 if direction.opposite() in legal_moves:
                     return Action(agent_id, direction.opposite())
                 else:
                     return Action(agent_id, random.choice(legal_moves))
+
+                ReplayLogger().log_comment("Try reach pac gum at" + closest_pacgum_pos +
+                                         "\nAnd then kill " + nearest_ghost[1].get_id() +
+                                         " at " + nearest_ghost[1].get_position())
             return Action(agent_id, direction)
 
         # else go in the opposite direction of the nearest ghosts
@@ -109,6 +117,8 @@ class PacmanBrain(Brain):
             ghosts_direction = a_star.first_step_of_path(pacman.get_position(), nearest_ghost[1].get_position())
             legal_moves = self.get_legal_move(perception, pacman.get_position())
             legal_moves.remove(ghosts_direction)
+            ReplayLogger().log_comment("No Pac-Gum Reachable or known\nRun away from " + nearest_ghost[1].get_id().__str__() +
+                                     " at " + nearest_ghost[1].get_position().__str__())
             if ghosts_direction.opposite() in legal_moves:
                 return Action(agent_id, ghosts_direction.opposite())
             else:

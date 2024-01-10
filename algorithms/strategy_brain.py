@@ -37,9 +37,9 @@ class StrategyBrain:
 
         # define hyper parameters
 
-        self._STRATEGY_AGRESSION_PAC_DOT_RANGE = 10
-        self._STRATEGY_AGRESSION_ENEMY_RANGE = 15
-        self._STRATEGY_AGRESSION_ENEMY_AMOUNT = 2
+        self._STRATEGY_AGRESSION_PAC_DOT_RANGE = 5
+        self._STRATEGY_AGRESSION_ENEMY_RANGE = 10
+        self._STRATEGY_AGRESSION_ENEMY_AMOUNT = 1
         self._STRATEGY_AGRESSION_ENEMY_PACMAN = True
 
         # we must have _STRATEGY_DEFENCE_ENEMY_RANGE <= _STRATEGY_AGRESSION_PAC_DOT_RANGE
@@ -67,8 +67,9 @@ class StrategyBrain:
         # Compute for the pac man of the team
         pacman = team.get_pacman()
 
+
         # if (Pac dot close AND Enemy close) OR Invincible mode active -> then AGRESSION
-        if ((closest_cell(pacman.get_position(), Cell['PAC_DOT'], board) < self._STRATEGY_AGRESSION_PAC_DOT_RANGE
+        if ((self.pac_gum_distance(pacman, team) < self._STRATEGY_AGRESSION_PAC_DOT_RANGE
              and self.is_enemy_close(pacman, perception))
                 or pacman.is_invicible()):
             strategy[pacman.get_id()] = Strategy.AGRESSION
@@ -134,6 +135,27 @@ class StrategyBrain:
 
         return self._distances.get_distance(team.get_perception(), agent.get_position(),
                                             team.get_pacman().get_position())
+
+    def pac_gum_distance(self, agent: Agent, team: Team) -> int:
+        """Returns the distance between the agent and the closest pac-gum
+
+        :param agent: the agent we want to know the pac-gum distance to
+        :type agent: Agent
+        :param team : the team object of the team we are working on
+        :type team : Team
+        :return: the distance between the agent and the closest pac-gum
+        :rtype: int
+        """
+        min_distance = 1000
+        pac_gum_sightings = team.get_perception().get_pac_gum_sightings()
+        for pac_gum in pac_gum_sightings:
+            (time, x, y) = pac_gum
+            pac_gum_pos = (x, y)
+            pac_gum_dist = self._distances.get_distance(team.get_perception(), agent.get_position(), (x,y))
+            if pac_gum_dist < min_distance:
+                min_distance = pac_gum_dist
+
+        return min_distance
 
     def ennemi_pacman_distance(self, agent: Agent, team: Team) -> int:
         """Returns the distance between an agent and the annemy's pacman
