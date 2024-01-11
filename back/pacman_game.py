@@ -164,21 +164,23 @@ class PacmanGame():
         currentAgent = self.get_agent_manager().get_agent(currentAction.id)
         actionsToRemove = []
         actionsToAdd = []
+        agentsVerified = []
 
         # Verify if another action is bothering the current action
         for action in allActions:
             # Get the verified action's agent (actionAgent)
             actionAgent = self._agent_manager.get_agent(action.id)
+            agentsVerified.append(actionAgent.get_id())
 
             # See if the action we want to verify is legal and not the current action we are viewing
-            if ((action != currentAction) and (actionAgent._alive) and (self._can_apply(action))):
+            if ((action != currentAction) and (actionAgent._alive)):
 
                 # See if the actionAgent is next to currentAgent(orthogonally) and can have a repercussion on the agent
                 distanceAgents = (currentAgent.get_position()[0] - actionAgent.get_position()[0], currentAgent.get_position()[1] - actionAgent.get_position()[1])
                 if ((distanceAgents[0] == 0) or (distanceAgents[1] == 0)):
                     # Verify if actions make the agents pass each other or puts them on the same space
                     futureAgentPosition = (actionAgent.get_position()[0] + action.direction.value[0], actionAgent.get_position()[1] + action.direction.value[1])
-                    if ((currentAgent.get_position() == futureAgentPosition)):
+                    if ((not self._can_apply(action)) or (currentAgent.get_position() == futureAgentPosition)):
                         # The current agent is a pacman
                         if (isinstance(currentAgent, Pacman)):
                             # He is interacting with a pacman
@@ -194,9 +196,11 @@ class PacmanGame():
                                 if currentAgent.is_invicible():
                                     actionAgent.die()
                                     actionsToAdd.append(Action(actionAgent.get_id(), Direction.RESPAWN))
+                                    actionsToRemove.append(action)
                                 else:
                                     currentAgent.die()
                                     actionsToAdd.append(Action(currentAgent.get_id(), Direction.RESPAWN))
+                                    actionsToRemove.append(currentAction)
                             # WTF is he interacting with ?
                             else:
                                 print("Error ! Not authorized object making a movement !" + actionAgent.get_id())
@@ -207,9 +211,11 @@ class PacmanGame():
                                 if actionAgent.is_invicible():
                                     currentAgent.die()
                                     actionsToAdd.append(Action(currentAgent.get_id(), Direction.RESPAWN))
+                                    actionsToRemove.append(currentAction)
                                 else:
                                     actionAgent.die()
                                     actionsToAdd.append(Action(actionAgent.get_id(), Direction.RESPAWN))
+                                    actionsToRemove.append(action)
                             # He is interacting with a ghost
                             elif (isinstance(actionAgent, Ghost)):
                                 # Apply an opposing action to undo the movement
@@ -228,7 +234,7 @@ class PacmanGame():
         # Verify the positions of the other agents bother the current action
         agentList = self.get_agent_manager().get_all_agents()
         for agent in agentList:
-            if agent != currentAgent:
+            if (agent != currentAgent) and (agent.get_id() not in agentsVerified):
                 if currentAgent.get_position() == agent.get_position():
                     # Apply an opposing action that can be assimilated to a bounce
                     oppositeCurrentAction = Action(currentAction.id, currentAction.direction.opposite())

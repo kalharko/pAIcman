@@ -1,11 +1,11 @@
-0, Pa, Pacman, 1, 5
-0, Pb, Ghost, 2, 1
-1, Pc, Ghost, 3, 1
+0, Pa, Pacman, 1, 1
+0, Pb, Ghost, 1, 5
+1, Pc, Ghost, 3, 2
 1, Pd, Ghost, 4, 1
 1, Pe, Pacman, 2, 5
 |
 #######
-#.....#
+#.O...#
 ###.###
 ###.###
 #######
