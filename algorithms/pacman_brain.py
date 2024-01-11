@@ -42,16 +42,18 @@ class PacmanBrain(Brain):
         if pacman.is_invicible():
             # find the closest enemy ghost sighting
             ghosts = team.get_perception().get_ghost_sightings()
-            if ghosts == []:
-                return self._exploration(team, agent_id)
             for ghost in ghosts:
                 if not ghost[1].is_alive():
                     ghosts.remove(ghost)
-            nearest_ghost = min(ghosts, key=lambda ghost: self._distances.get_distance(perception, ghost[1].get_position(), pacman.get_position()))
 
-            direction = a_star.first_step_of_path(pacman.get_position(), nearest_ghost[1].get_position())
-            ReplayLogger().log_comment("Pac-Man invincible\nTry Kill " + nearest_ghost[1].get_id() + " at " + str(nearest_ghost[1].get_position()))
-            return Action(agent_id, direction)
+            if len(ghosts) == 0:
+                return self._exploration(team, agent_id)
+            else :
+                nearest_ghost = min(ghosts, key=lambda ghost: self._distances.get_distance(perception, ghost[1].get_position(), pacman.get_position()))
+
+                direction = a_star.first_step_of_path(pacman.get_position(), nearest_ghost[1].get_position())
+                ReplayLogger().log_comment("Pac-Man invincible\nTry Kill " + nearest_ghost[1].get_id() + " at " + str(nearest_ghost[1].get_position()))
+                return Action(agent_id, direction)
         else:
             # find the closest pacgum
             return self._defense(team, agent_id)
