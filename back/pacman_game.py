@@ -178,7 +178,7 @@ class PacmanGame():
                 if ((distanceAgents[0] == 0) or (distanceAgents[1] == 0)):
                     # Verify if actions make the agents pass each other or puts them on the same space
                     futureAgentPosition = (actionAgent.get_position()[0] + action.direction.value[0], actionAgent.get_position()[1] + action.direction.value[1])
-                    if ((currentAgent.get_position() == futureAgentPosition) or (distanceAgents == (0, 0))):
+                    if ((currentAgent.get_position() == futureAgentPosition)):
                         # The current agent is a pacman
                         if (isinstance(currentAgent, Pacman)):
                             # He is interacting with a pacman

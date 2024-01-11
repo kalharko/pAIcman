@@ -20,7 +20,7 @@ actions = [Action('Pb', Direction['RIGHT']), Action('Pc', Direction['LEFT']), Ac
 game.step(actions)
 ReplayLogger().log_step(actions)
 
-actions = [Action('Pb', Direction['RIGHT']), Action('Pc', Direction['LEFT']), Action('Pd', Direction['LEFT'])]
+actions = [Action('Pb', Direction['LEFT']), Action('Pc', Direction['DOWN']), Action('Pd', Direction['LEFT'])]
 game.step(actions)
 ReplayLogger().log_step(actions)
 
