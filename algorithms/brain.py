@@ -87,7 +87,7 @@ class Brain:
         self._last_cell_visited = perception.get_board().get_next_cell(team.get_pacman().get_position(), opposite_dir)
         for direction in self.get_legal_move(perception, team.get_agent(agent_id).get_position()):  # TODO : shuffle the order of move
             self._already_visited = [team.get_pacman().get_position()]
-            exploration_score = self.get_exploration_score(perception, agent_id, team.get_agent(agent_id).get_position(), direction)
+            exploration_score = self.get_exploration_score(team, agent_id, team.get_agent(agent_id).get_position(), direction)
             ReplayLogger().log_comment(str(direction.name) + ' -> ' + str(round(exploration_score, 2)))
             if bestScore is None or exploration_score >= bestScore:
                 chosenDirection = direction
@@ -95,8 +95,9 @@ class Brain:
 
         return Action(agent_id, chosenDirection)
 
-    def get_exploration_score(self, perception: Perception, agent_id: str, position: tuple[int, int],
+    def get_exploration_score(self, team: Team, agent_id: str, position: tuple[int, int],
                               direction: Direction) -> float:
+        perception = team.get_perception()
         next_cell = perception.get_board().get_next_cell(position, direction)
 
         # stop case 1 : if is next cell non-legal
@@ -115,6 +116,10 @@ class Brain:
         elif next_cell not in perception.get_last_cells_seen():
             return 0.0
 
+        # stop case 5 : if there is a agent on the next cell
+        elif self.is_agent_on_cell(team, next_cell):
+            return 0.0
+
         # recursive case : continue in  all other direction
         else:
             score = 0
@@ -127,7 +132,7 @@ class Brain:
                 score = self._EXPLORATION_LAST_CELL_VISITED_SCORE
             self._already_visited.append(copy.copy(next_cell))
             for direction in ((0, 1), (0, -1), (1, 0), (-1, 0)):
-                score += self.get_exploration_score(perception, agent_id, next_cell, Direction(direction))* (1-self._EXPLORATION_FORGETTING_RATE)
+                score += self.get_exploration_score(team, agent_id, next_cell, Direction(direction))* (1-self._EXPLORATION_FORGETTING_RATE)
             return score
 
     def get_legal_move(self, perception: Perception, position: tuple[int, int]) -> list[Direction]:
@@ -142,3 +147,18 @@ class Brain:
         :rtype: list[Direction]
         """
         return perception.get_board().get_legal_move(position)
+
+    def is_agent_on_cell(self, team: Team, position: tuple[int, int]) -> bool:
+
+        #check if there is an ally
+        for allie in team.get_agents():
+            if position == allie.get_position():
+                return True
+
+        #check if there is an ennemy
+        for age, enemy  in team.get_perception().get_sightings():
+            if age < 3:
+                if position == enemy.get_position():
+                    return True
+
+        return False
