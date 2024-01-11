@@ -58,7 +58,7 @@ class PacmanGame():
         # first perception
         self._agent_manager.update_perceptions(self._board_manager)
 
-    def gather_state(self) -> tuple[Team]:
+    def gather_state(self) -> tuple[Team, Team]:
         """Get the game's state
 
         :return: game's state, wich is the teams informations with their perceptions

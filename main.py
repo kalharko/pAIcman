@@ -1,3 +1,4 @@
+import random
 from algorithms.strategy_brain import StrategyBrain
 from algorithms.utility import Utility
 from back.pacman_game import PacmanGame
@@ -5,6 +6,7 @@ from algorithms.pacman_brain import PacmanBrain
 from algorithms.ghost_brain import GhostBrain
 from argparse import ArgumentParser
 from utils.action import Action
+from utils.direction import Direction
 from utils.replay_logger import ReplayLogger
 import time
 
@@ -73,6 +75,12 @@ class Main():
                     actions.append(self.brain_pacman.compute_action(strategy, team_a, agent_id))
                 else:
                     actions.append(self.brain_ghost.compute_action(strategy, team_a, agent_id))
+        elif self._team1_decision_algo == 'random':
+            ReplayLogger().log_comment('Random actions')
+            board = team_a.get_perception().get_board()
+            for agent in team_a.get_agents():
+                actions.append(Action(agent.get_id(), random.choice(board.get_legal_move(agent.get_position()))))
+                ReplayLogger().log_comment(agent.get_id() + ' : ' + actions[-1].direction.name)
 
         ReplayLogger().log_comment('\nTeam b')
 
@@ -85,6 +93,12 @@ class Main():
                     actions.append(self.brain_pacman.compute_action(strategy, team_b, agent_id))
                 else:
                     actions.append(self.brain_ghost.compute_action(strategy, team_b, agent_id))
+        elif self._team2_decision_algo == 'random':
+            ReplayLogger().log_comment('Random actions')
+            board = team_b.get_perception().get_board()
+            for agent in team_b.get_agents():
+                actions.append(Action(agent.get_id(), random.choice(board.get_legal_move(agent.get_position()))))
+                ReplayLogger().log_comment(agent.get_id() + ' : ' + actions[-1].direction.name)
 
         # apply to environment
         self.environment.step(actions)
@@ -97,11 +111,20 @@ class Main():
         # return wether the game is over or not
         return not self.environment.is_game_over()
 
-    def play_until_game_over(self) -> None:
+    def play_until_game_over(self) -> int:
         """Play until the game is over
+
+        :return: number of iteration
+        :rtype: int
         """
+
+        print('\nStart auto play')
+        nb_iteration = 0
         while self.cycle():
-            pass
+            nb_iteration += 1
+            print('\rIteration: ' + str(nb_iteration), end='')
+        print()
+        return nb_iteration
 
     def set_teams_utility_parameters(self, value_1: tuple[float], value_2: tuple[float]) -> None:
         """Set both teams utility parameters

@@ -52,7 +52,7 @@ class PacmanBrain(Brain):
             nearest_ghost = min(ghosts, key=lambda ghost: self._distances.get_distance(perception, ghost[1].get_position(), pacman.get_position()))
 
             direction = a_star.first_step_of_path(pacman.get_position(), nearest_ghost[1].get_position())
-            ReplayLogger().log_comment("Pac-Man invincible\nTry Kill " + nearest_ghost[1].get_id() + " at " + nearest_ghost[1].get_position())
+            ReplayLogger().log_comment("Pac-Man invincible\nTry Kill " + nearest_ghost[1].get_id() + " at " + str(nearest_ghost[1].get_position()))
             return Action(agent_id, direction)
         else:
             # find the closest pacgum
@@ -123,5 +123,3 @@ class PacmanBrain(Brain):
                 return Action(agent_id, ghosts_direction.opposite())
             else:
                 return Action(agent_id, random.choice(legal_moves))
-
-
