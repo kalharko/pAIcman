@@ -161,9 +161,11 @@ class PacmanGame():
         return list[Action]
         """
         # Get the current action's agent (currentAgent)
-        currentAgent = self._agent_manager.get_agent(currentAction.id)
+        currentAgent = self.get_agent_manager().get_agent(currentAction.id)
         actionsToRemove = []
         actionsToAdd = []
+
+        # Verify if another action is bothering the current action
         for action in allActions:
             # Get the verified action's agent (actionAgent)
             actionAgent = self._agent_manager.get_agent(action.id)
@@ -181,15 +183,12 @@ class PacmanGame():
                         if (isinstance(currentAgent, Pacman)):
                             # He is interacting with a pacman
                             if (isinstance(actionAgent, Pacman)):
-                                # Apply an opposing action that can be assimilated to a bounce
+                                # Apply an opposing action to undo the movement
                                 oppositeCurrentAction = Action(currentAction.id, currentAction.direction.opposite())
                                 if (self._can_apply(oppositeCurrentAction)):
                                     self._apply(oppositeCurrentAction)
-                                # Apply the bothering action and adding the opposing action to simulate the bounce
-                                self._apply(action)
+                                # Remove the bothering action to block
                                 actionsToRemove.append(action)
-                                oppositeAction = Action(action.id, action.direction.opposite())
-                                actionsToAdd.append(oppositeAction)
                             # He is interacting with a ghost
                             elif (isinstance(actionAgent, Ghost)):
                                 if currentAgent.is_invicible():
@@ -213,21 +212,29 @@ class PacmanGame():
                                     actionsToAdd.append(Action(actionAgent.get_id(), Direction.RESPAWN))
                             # He is interacting with a ghost
                             elif (isinstance(actionAgent, Ghost)):
-                                # Apply an opposing action that can be assimilated to a bounce
+                                # Apply an opposing action to undo the movement
                                 oppositeCurrentAction = Action(currentAction.id, currentAction.direction.opposite())
                                 if (self._can_apply(oppositeCurrentAction)):
                                     self._apply(oppositeCurrentAction)
-                                # Apply the bothering action and adding the opposing action to simulate the bounce
-                                self._apply(action)
+                                # Remove the bothering action to block
                                 actionsToRemove.append(action)
-                                oppositeAction = Action(action.id, action.direction.opposite())
-                                actionsToAdd.append(oppositeAction)
                             # WTF is he interacting with ?
                             else:
                                 print("Error ! Not authorized object making a movement !" + actionAgent.get_id())
                         # WTF is the current agent ?
                         else:
                             print("Error ! Not authordized object making a movement !" + currentAction.get_id())
+
+        # Verify the positions of the other agents bother the current action
+        agentList = self.get_agent_manager().get_all_agents()
+        for agent in agentList:
+            if agent != currentAgent:
+                if currentAgent.get_position() == agent.get_position():
+                    # Apply an opposing action that can be assimilated to a bounce
+                    oppositeCurrentAction = Action(currentAction.id, currentAction.direction.opposite())
+                    if (self._can_apply(oppositeCurrentAction)):
+                        self._apply(oppositeCurrentAction)
+
         # Remove all actions unneeded
         for action in actionsToRemove:
             allActions.remove(action)
