@@ -112,10 +112,10 @@ class StrategyBrain:
         if self._STRATEGY_DEFENCE_ENEMY_PACMAN:
             sightings += perception.get_pacman_sighting()
 
-        for enemy in sightings:
-            if enemy[1].is_alive():
+        for age, enemy in sightings:
+            if enemy.is_alive() and age < 5:
                 if self._distances.get_distance(perception, agent.get_position(),
-                                                enemy[1].get_position()) <= self._STRATEGY_AGRESSION_ENEMY_RANGE:
+                                                enemy.get_position()) <= self._STRATEGY_AGRESSION_ENEMY_RANGE:
                     nb_enemy_in_range += 1
                     if nb_enemy_in_range >= self._STRATEGY_DEFENCE_ENEMY_AMOUNT:
                         return True
@@ -170,8 +170,11 @@ class StrategyBrain:
         if sighting == []:
             return 100
 
-        enemy_pacman = sighting[0][1]
-        return self._distances.get_distance(perception, agent.get_position(), enemy_pacman.get_position())
+        age, enemy_pacman = sighting[0]
+        if age < 5:
+            return self._distances.get_distance(perception, agent.get_position(), enemy_pacman.get_position())
+        else:
+            return 100
 
     def is_enemy_invincible(self, team: Team) -> bool:
         return team.get_ghosts()[0].is_vulnerable()
