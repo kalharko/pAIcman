@@ -148,10 +148,8 @@ class StrategyBrain:
         """
         min_distance = 1000
         pac_gum_sightings = team.get_perception().get_pac_gum_sightings()
-        for pac_gum in pac_gum_sightings:
-            (time, x, y) = pac_gum
-            pac_gum_pos = (x, y)
-            pac_gum_dist = self._distances.get_distance(team.get_perception(), agent.get_position(), (x,y))
+        for pos, sighting__age in pac_gum_sightings.items():
+            pac_gum_dist = self._distances.get_distance(team.get_perception(), agent.get_position(), pos)
             if pac_gum_dist < min_distance:
                 min_distance = pac_gum_dist
 
