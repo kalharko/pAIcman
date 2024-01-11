@@ -192,13 +192,20 @@ if __name__ == '__main__':
                         help='chose color theme, possible values : dark, light',
                         default='dark',
                         type=str)
+    parser.add_argument('-i', '--max_iteration',
+                        help='max oterations, default to 500',
+                        default=500)
+    parser.add_argument('-t', '--max_time',
+                        help='max compute time, default to 10 seconds',
+                        default=10,
+                        type=int)
 
     args = parser.parse_args()
 
     main = Main(args.map_path, args.team1_decision_algo, args.team2_decision_algo)
     print(f'Playing on map {args.map_path}, with team1 using {args.team1_decision_algo} and team2 using {args.team2_decision_algo}')
     i = 0
-    while i < 1000:
+    while i < args.max_iteration:
         start_time = time.time()
         print('\riteration :', i, end='')
         if not main.cycle():
@@ -208,7 +215,7 @@ if __name__ == '__main__':
         #    print('\nIs repeating')
         #    break
         i += 1
-        if time.time() - start_time > 5:
+        if time.time() - start_time > args.max_time:
             print('\nToo long, stopping')
             break
 
