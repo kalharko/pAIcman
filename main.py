@@ -1,10 +1,12 @@
+import random
+from algorithms.strategy_brain import StrategyBrain
 from algorithms.utility import Utility
 from back.pacman_game import PacmanGame
-from back.pacman import Pacman
 from algorithms.pacman_brain import PacmanBrain
 from algorithms.ghost_brain import GhostBrain
-from utils.strategy import Strategy
 from argparse import ArgumentParser
+from utils.action import Action
+from utils.direction import Direction
 from utils.replay_logger import ReplayLogger
 import time
 
@@ -20,6 +22,7 @@ class Main():
     scenario: int
     _team1_decision_algo: str
     _team2_decision_algo: str
+    _small_history: list[list[Action]]
 
     def __init__(self, map_path: str, team1_decision_algo: str, team2_decision_algo: str, verbose: bool = True) -> None:
         """Main initialization
@@ -40,12 +43,14 @@ class Main():
         ReplayLogger().log_map(map_path)
 
         # brains
-        self.brain_ghost = GhostBrain(self.environment.get_agent_manager())
-        self.brain_pacman = PacmanBrain(self.environment.get_agent_manager())
+        self.brain_ghost = GhostBrain(self.environment.get_board_distances())
+        self.brain_pacman = PacmanBrain(self.environment.get_board_distances())
+        self.strategy_brain = StrategyBrain(self.environment.get_board_distances())
 
         # other
         self.utility = Utility(self.environment.get_board_distances())
         self.verbose = verbose
+        self._small_history = []
         if self.verbose:
             ReplayLogger().log_map(map_path)
 
@@ -59,45 +64,67 @@ class Main():
 
         # different decision systems
         actions = []
-        if self._team1_decision_algo != self._team2_decision_algo:  # utility vs strategy triangle
-            # utility
-            actions = self.utility.run(team_a)
-            # strategy triangle
-            strat_team_b = ((agent, Strategy['RANDOM']) for agent in team_b.get_agents())
-            for agent, strat in strat_team_b:
-                if isinstance(agent, Pacman):
-                    actions.append(self.brain_pacman.compute_action(strat, team_b, agent.get_id()))
+
+        ReplayLogger().log_comment('Team a')
+        if self._team1_decision_algo == 'utility':
+            actions += self.utility.run(team_a)
+        elif self._team1_decision_algo == 'behaviors':
+            strategies = self.strategy_brain.compute_team_strategy(team_a)
+            for agent_id, strategy in strategies.items():
+                if agent_id == team_a.get_pacman().get_id():
+                    actions.append(self.brain_pacman.compute_action(strategy, team_a, agent_id))
                 else:
-                    actions.append(self.brain_ghost.compute_action(strat, team_b, agent.get_id()))
-        elif self._team1_decision_algo == self._team2_decision_algo and self._team1_decision_algo == 'utility':  # utility vs utility
-            actions = self.utility.run(team_a)
+                    actions.append(self.brain_ghost.compute_action(strategy, team_a, agent_id))
+        elif self._team1_decision_algo == 'random':
+            ReplayLogger().log_comment('Random actions')
+            board = team_a.get_perception().get_board()
+            for agent in team_a.get_agents():
+                actions.append(Action(agent.get_id(), random.choice(board.get_legal_move(agent.get_position()))))
+                ReplayLogger().log_comment(agent.get_id() + ' : ' + actions[-1].direction.name)
+
+        ReplayLogger().log_comment('\nTeam b')
+
+        if self._team2_decision_algo == 'utility':
             actions += self.utility.run(team_b)
-        else:  # strategy triangle vs strategy triangle
-            strat_team_a = ((agent, Strategy['AGRESSION']) for agent in team_a.get_agents())
-            strat_team_b = ((agent, Strategy['AGRESSION']) for agent in team_b.get_agents())
-            for agent, strat in strat_team_a:
-                if isinstance(agent, Pacman):
-                    actions.append(self.brain_pacman.compute_action(strat, team_a, agent.get_id()))
+        elif self._team2_decision_algo == 'behaviors':
+            strategies = self.strategy_brain.compute_team_strategy(team_b)
+            for agent_id, strategy in strategies.items():
+                if agent_id == team_b.get_pacman().get_id():
+                    actions.append(self.brain_pacman.compute_action(strategy, team_b, agent_id))
                 else:
-                    actions.append(self.brain_ghost.compute_action(strat, team_a, agent.get_id()))
-            for agent, strat in strat_team_b:
-                if isinstance(agent, Pacman):
-                    actions.append(self.brain_pacman.compute_action(strat, team_b, agent.get_id()))
-                else:
-                    actions.append(self.brain_ghost.compute_action(strat, team_b, agent.get_id()))
+                    actions.append(self.brain_ghost.compute_action(strategy, team_b, agent_id))
+        elif self._team2_decision_algo == 'random':
+            ReplayLogger().log_comment('Random actions')
+            board = team_b.get_perception().get_board()
+            for agent in team_b.get_agents():
+                actions.append(Action(agent.get_id(), random.choice(board.get_legal_move(agent.get_position()))))
+                ReplayLogger().log_comment(agent.get_id() + ' : ' + actions[-1].direction.name)
 
         # apply to environment
         self.environment.step(actions)
         # save for replay
         ReplayLogger().log_step(actions)
+        # save for is repeating function
+        self._small_history.append(actions)
+        if len(self._small_history) == 5:
+            self._small_history = self._small_history[1:]
         # return wether the game is over or not
         return not self.environment.is_game_over()
 
-    def play_until_game_over(self) -> None:
+    def play_until_game_over(self) -> int:
         """Play until the game is over
+
+        :return: number of iteration
+        :rtype: int
         """
+
+        print('\nStart auto play')
+        nb_iteration = 0
         while self.cycle():
-            pass
+            nb_iteration += 1
+            print('\rIteration: ' + str(nb_iteration), end='')
+        print()
+        return nb_iteration
 
     def set_teams_utility_parameters(self, value_1: tuple[float], value_2: tuple[float]) -> None:
         """Set both teams utility parameters
@@ -117,6 +144,7 @@ class Main():
     def reset(self) -> None:
         """Reset the game
         """
+        self._small_history = []
         self.environment.reset()
         ReplayLogger().reset()
 
@@ -134,8 +162,15 @@ class Main():
         :return: wether or not the game is repeating
         :rtype: bool
         """
+        if len(self._small_history) < 4:
+            return False
 
-        return ReplayLogger().is_repeating()
+        if all([a1.id == a2.id and a1.direction == a2.direction for a1, a2 in zip(self._small_history[-4], self._small_history[-2])]):
+            if all([a1.id == a2.id and a1.direction == a2.direction for a1, a2 in zip(self._small_history[-3], self._small_history[-1])]):
+                # commet
+                return True
+
+        return False
 
 
 if __name__ == '__main__':
@@ -150,30 +185,37 @@ if __name__ == '__main__':
                         default='utility',
                         type=str)
     parser.add_argument('-t2', '--team2_decision_algo',
-                        help='which decision system to use for the team 2 default to strategy_triangle',
-                        default='strategy_triangle',
+                        help='which decision system to use for the team 2 default to behaviors',
+                        default='behaviors',
                         type=str)
     parser.add_argument('-c', '--color',
                         help='chose color theme, possible values : dark, light',
                         default='dark',
                         type=str)
+    parser.add_argument('-i', '--max_iteration',
+                        help='max oterations, default to 500',
+                        default=500)
+    parser.add_argument('-t', '--max_time',
+                        help='max compute time, default to 10 seconds',
+                        default=10,
+                        type=int)
 
     args = parser.parse_args()
 
     main = Main(args.map_path, args.team1_decision_algo, args.team2_decision_algo)
     print(f'Playing on map {args.map_path}, with team1 using {args.team1_decision_algo} and team2 using {args.team2_decision_algo}')
     i = 0
-    while i < 100:
+    while i < args.max_iteration:
         start_time = time.time()
         print('\riteration :', i, end='')
         if not main.cycle():
             print('\nGame Over')
             break
-        if main.is_repeating():
-            print('\nIs repeating')
-            break
+        #if main.is_repeating():
+        #    print('\nIs repeating')
+        #    break
         i += 1
-        if time.time() - start_time > 5:
+        if time.time() - start_time > args.max_time:
             print('\nToo long, stopping')
             break
 

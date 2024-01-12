@@ -137,9 +137,7 @@ class Board:
         x = position[0]
         y = position[1]
 
-        for direction in Direction:
-            if direction == Direction['NONE']:
-                continue
+        for direction in (Direction['UP'], Direction['RIGHT'], Direction['DOWN'], Direction['LEFT']):
             if self.get_cell(self.get_next_cell((x, y), direction)).is_movable():
                 legal_move.append(direction)
         return legal_move

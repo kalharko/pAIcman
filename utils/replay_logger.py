@@ -72,18 +72,3 @@ class ReplayLogger(metaclass=SingletonMeta):
         """
 
         pickle.dump(self.get_replay(), open(path, 'wb'))
-
-    def is_repeating(self) -> bool:
-        """Game analysis function, returns wether or not the game is repeating
-
-        :return: wether or not the game is repeating
-        :rtype: bool
-        """
-
-        if len(self.replay_steps) < 6:
-            return False
-
-        if self.replay_steps[-1] == self.replay_steps[-3] and self.replay_steps[-2] == self.replay_steps[-4]:
-            return True
-
-        return False

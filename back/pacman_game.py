@@ -58,7 +58,7 @@ class PacmanGame():
         # first perception
         self._agent_manager.update_perceptions(self._board_manager)
 
-    def gather_state(self) -> tuple[Team]:
+    def gather_state(self) -> tuple[Team, Team]:
         """Get the game's state
 
         :return: game's state, wich is the teams informations with their perceptions
@@ -109,6 +109,10 @@ class PacmanGame():
                                 self._board_manager.set_cell(agent.get_position(), Cell['EMPTY'])
                             elif col == Cell['PAC_GUM']:
                                 agent.eat_pacgum()
+                                agentList = self._agent_manager.get_all_agents()
+                                for agentIterator in agentList:
+                                    if (isinstance(agentIterator, Ghost) and agentIterator.get_team() != agent.get_team()):
+                                        agentIterator.set_vulnerability(True)
                                 self._board_manager.set_cell(agent.get_position(), Cell['EMPTY'])
             else:
                 # if action is invalid, will try to redo last action
@@ -157,43 +161,46 @@ class PacmanGame():
         return list[Action]
         """
         # Get the current action's agent (currentAgent)
-        currentAgent = self._agent_manager.get_agent(currentAction.id)
+        currentAgent = self.get_agent_manager().get_agent(currentAction.id)
         actionsToRemove = []
         actionsToAdd = []
+        agentsVerified = []
+
+        # Verify if another action is bothering the current action
         for action in allActions:
             # Get the verified action's agent (actionAgent)
             actionAgent = self._agent_manager.get_agent(action.id)
+            agentsVerified.append(actionAgent.get_id())
 
             # See if the action we want to verify is legal and not the current action we are viewing
-            if ((action != currentAction) and (actionAgent._alive) and (self._can_apply(action))):
+            if ((action != currentAction) and (actionAgent._alive)):
 
                 # See if the actionAgent is next to currentAgent(orthogonally) and can have a repercussion on the agent
                 distanceAgents = (currentAgent.get_position()[0] - actionAgent.get_position()[0], currentAgent.get_position()[1] - actionAgent.get_position()[1])
                 if ((distanceAgents[0] == 0) or (distanceAgents[1] == 0)):
                     # Verify if actions make the agents pass each other or puts them on the same space
                     futureAgentPosition = (actionAgent.get_position()[0] + action.direction.value[0], actionAgent.get_position()[1] + action.direction.value[1])
-                    if ((currentAgent.get_position() == futureAgentPosition) or (distanceAgents == (0, 0))):
+                    if ((not self._can_apply(action)) or (currentAgent.get_position() == futureAgentPosition)):
                         # The current agent is a pacman
                         if (isinstance(currentAgent, Pacman)):
                             # He is interacting with a pacman
                             if (isinstance(actionAgent, Pacman)):
-                                # Apply an opposing action that can be assimilated to a bounce
+                                # Apply an opposing action to undo the movement
                                 oppositeCurrentAction = Action(currentAction.id, currentAction.direction.opposite())
                                 if (self._can_apply(oppositeCurrentAction)):
                                     self._apply(oppositeCurrentAction)
-                                # Apply the bothering action and adding the opposing action to simulate the bounce
-                                self._apply(action)
+                                # Remove the bothering action to block
                                 actionsToRemove.append(action)
-                                oppositeAction = Action(action.id, action.direction.opposite())
-                                actionsToAdd.append(oppositeAction)
                             # He is interacting with a ghost
                             elif (isinstance(actionAgent, Ghost)):
                                 if currentAgent.is_invicible():
                                     actionAgent.die()
                                     actionsToAdd.append(Action(actionAgent.get_id(), Direction.RESPAWN))
+                                    actionsToRemove.append(action)
                                 else:
                                     currentAgent.die()
                                     actionsToAdd.append(Action(currentAgent.get_id(), Direction.RESPAWN))
+                                    actionsToRemove.append(currentAction)
                             # WTF is he interacting with ?
                             else:
                                 print("Error ! Not authorized object making a movement !" + actionAgent.get_id())
@@ -204,26 +211,36 @@ class PacmanGame():
                                 if actionAgent.is_invicible():
                                     currentAgent.die()
                                     actionsToAdd.append(Action(currentAgent.get_id(), Direction.RESPAWN))
+                                    actionsToRemove.append(currentAction)
                                 else:
                                     actionAgent.die()
                                     actionsToAdd.append(Action(actionAgent.get_id(), Direction.RESPAWN))
+                                    actionsToRemove.append(action)
                             # He is interacting with a ghost
                             elif (isinstance(actionAgent, Ghost)):
-                                # Apply an opposing action that can be assimilated to a bounce
+                                # Apply an opposing action to undo the movement
                                 oppositeCurrentAction = Action(currentAction.id, currentAction.direction.opposite())
                                 if (self._can_apply(oppositeCurrentAction)):
                                     self._apply(oppositeCurrentAction)
-                                # Apply the bothering action and adding the opposing action to simulate the bounce
-                                self._apply(action)
+                                # Remove the bothering action to block
                                 actionsToRemove.append(action)
-                                oppositeAction = Action(action.id, action.direction.opposite())
-                                actionsToAdd.append(oppositeAction)
                             # WTF is he interacting with ?
                             else:
                                 print("Error ! Not authorized object making a movement !" + actionAgent.get_id())
                         # WTF is the current agent ?
                         else:
                             print("Error ! Not authordized object making a movement !" + currentAction.get_id())
+
+        # Verify the positions of the other agents bother the current action
+        agentList = self.get_agent_manager().get_all_agents()
+        for agent in agentList:
+            if (agent != currentAgent) and (agent.get_id() not in agentsVerified):
+                if currentAgent.get_position() == agent.get_position():
+                    # Apply an opposing action that can be assimilated to a bounce
+                    oppositeCurrentAction = Action(currentAction.id, currentAction.direction.opposite())
+                    if (self._can_apply(oppositeCurrentAction)):
+                        self._apply(oppositeCurrentAction)
+
         # Remove all actions unneeded
         for action in actionsToRemove:
             allActions.remove(action)
@@ -266,6 +283,17 @@ class PacmanGame():
         if action.direction == Direction.RESPAWN:
             agent.respawn()
         else:
+            if (isinstance(agent, Pacman) and agent.is_invicible()):
+                if not agent.invicibility_left():
+
+                    agentList = self._agent_manager.get_all_agents()
+                    for agentIterator in agentList:
+                        if (isinstance(agentIterator, Ghost) and agentIterator.get_team() != agent.get_team()):
+                            agentIterator.set_vulnerability(False)
+
+                    agent.vulnerable()
+                else:
+                    agent.reduce_invicibility()
             agent.move(action.direction)
 
     def get_board_size(self) -> tuple[int, int]:
@@ -312,7 +340,7 @@ class PacmanGame():
         if self._board_manager.is_game_over() is True:
             self._is_game_over = True
             t1, t2 = self._agent_manager.get_teams()
-            self.winning_team = 0 if t1.get_score > t2.get_score() else 1
+            self.winning_team = 0 if t1.get_score() > t2.get_score() else 1
         if self._agent_manager.is_game_over() is True:
             self._is_game_over = True
             t1, t2 = self._agent_manager.get_teams()

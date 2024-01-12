@@ -2,11 +2,11 @@ from back.board import Board
 from back.cell import Cell
 
 
-def closest_cell(og_x: int, og_y: int, searching_for: Cell, board: Board) -> int:
-    if board.get_cell((og_x, og_y)) == searching_for:
+def closest_cell(pos: tuple[int, int], searching_for: Cell, board: Board) -> int:
+    if board.get_cell(pos) == searching_for:
         return 0
 
-    unvisited = [(0, og_x, og_y)]  # (distance, x, y)
+    unvisited = [(0, pos[0], pos[1])]  # (distance, x, y)
     visited = set()  # [(x, y)]
     min_distance_found = 1000
 

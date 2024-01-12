@@ -16,20 +16,20 @@ game = PacmanGame()
 game.load_map(game_map)
 ReplayLogger().log_map(game_map)
 
-actions = [Action('Pa', Direction['RIGHT']), Action('Pb', Direction['UP'])]
+actions = [Action('Pa', Direction['RIGHT']), Action('Pc', Direction['UP']), Action('Pd', Direction['UP'])]
 game.step(actions)
 ReplayLogger().log_step(actions)
 
-actions = [Action('Pa', Direction['RIGHT']), Action('Pb', Direction['UP'])]
+actions = [Action('Pa', Direction['RIGHT']), Action('Pc', Direction['UP']), Action('Pd', Direction['UP'])]
 game.step(actions)
 ReplayLogger().log_step(actions)
 
-actions = [Action('Pa', Direction['LEFT']), Action('Pb', Direction['DOWN'])]
+actions = [Action('Pa', Direction['RIGHT']), Action('Pc', Direction['UP']), Action('Pd', Direction['UP'])]
 game.step(actions)
 ReplayLogger().log_step(actions)
 
-actions = [Action('Pa', Direction['LEFT']), Action('Pb', Direction['DOWN'])]
+actions = [Action('Pa', Direction['RIGHT']), Action('Pc', Direction['DOWN']), Action('Pd', Direction['UP'])]
 game.step(actions)
 ReplayLogger().log_step(actions)
 
-replay = CliReplay('dark')
+replay = CliReplay()
