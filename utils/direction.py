@@ -1,4 +1,5 @@
 from enum import Enum
+import random
 
 
 class Direction(Enum):
@@ -24,3 +25,6 @@ class Direction(Enum):
             case Direction.NONE:
                 print('asks for oposite of direction NONE and dont like it')
                 return Direction.NONE
+
+    def random_direction():
+        return Direction(random.randint(0, 3))

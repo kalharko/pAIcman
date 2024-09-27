@@ -3,6 +3,7 @@ from back.board import Board
 from back.cell import Cell
 from copy import deepcopy
 from back.ghost import Ghost
+from utils.replay_logger import ReplayLogger
 
 from back.pacman import Pacman
 
@@ -13,6 +14,7 @@ class Perception():
     _board: Board
     _pacman_sighting: list[int, Pacman]  # [time since sighting, Pacman]
     _ghost_sightings: dict[str: list[int, Ghost]]  # id: [time since sighting, Ghost]]
+    _pac_gum_sightings: dict[tuple[int]: int]  # {(x, y): time since sighting}
     _last_cell_seen: list[tuple[int, int]]  # x, y
 
     def __init__(self, board_size: tuple[int, int]) -> None:
@@ -31,6 +33,7 @@ class Perception():
         self._last_cell_seen = []
         self._pacman_sighting = None
         self._ghost_sightings = {}
+        self._pac_gum_sightings = {}
 
     def set_board(self, board: Board) -> None:
         """Set the perception's board
@@ -48,8 +51,10 @@ class Perception():
         # step_time
         if self._pacman_sighting is not None:
             self._pacman_sighting[0] += 1
-        for sighting in self._ghost_sightings.values():
-            sighting[0] += 1
+        for key in self._ghost_sightings.keys():
+            self._ghost_sightings[key][0] += 1
+        for key in self._pac_gum_sightings.keys():
+            self._pac_gum_sightings[key] += 1
         # refresh last cell seen
         self._last_cell_seen = []
 
@@ -70,6 +75,16 @@ class Perception():
                     continue
                 if (x, y) not in self._last_cell_seen:
                     self._last_cell_seen.append((x, y))
+                if other_board.get_cell((x, y)) == Cell['PAC_GUM']:
+                    self._pac_gum_sightings[(x, y)] = 0
+                if (x, y) in self._pac_gum_sightings.keys() and self._pac_gum_sightings[(x, y)] > 0:
+                    ReplayLogger().log_comment(f"Remove pacgum sighting at {x}, {y}")
+                    del self._pac_gum_sightings[(x, y)]
+                if (x, y) in self._ghost_sightings.keys():
+                    del self._ghost_sightings[(x, y)]
+                if self._pacman_sighting is not None:
+                    if (x, y) == self._pacman_sighting[1].get_position():
+                        self._pacman_sighting = None
 
                 self._board.set_cell((x, y), other_board.get_cell((x, y)))
         # update Pacman seen
@@ -80,6 +95,11 @@ class Perception():
         for time, ghost in other.get_ghost_sightings():
             if time == 0:
                 self._ghost_sightings[ghost.get_id()] = [0, deepcopy(ghost)]
+        # update PacGum
+        for time, pos in other.get_pac_gum_sightings().items():
+            if time == 0:
+                ReplayLogger().log_comment(f"Add pacgum sighting at {pos[0]}, {pos[1]}")
+                self._pac_gum_sightings[(pos[0], pos[1])] = 0
 
     def get_board(self) -> Board:
         """Get the perception's board
@@ -96,6 +116,14 @@ class Perception():
         :rtype: list[tuple[int]]
         """
         return self._last_cell_seen
+
+    def get_pac_gum_sightings(self) -> list[tuple[int]]:
+        """Get the perception's PacGum sighting
+
+        :return: the PacGum sighting
+        :rtype: list[int] [time since sighting, x, y]
+        """
+        return self._pac_gum_sightings
 
     def get_sightings(self) -> list[list[int, Agent]]:
         """Get the perception's sighting of ghosts and pacman combined

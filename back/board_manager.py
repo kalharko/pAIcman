@@ -141,20 +141,18 @@ class BoardManager():
         # board vision
         width, height = board.get_size()
         x, y = agent.get_position()
-        # self._board.set_cell(x, y, self._board.get_cell(x, y))  # wtf is this line ?
         for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
             distance = 0
             cur_x = x + dx * distance
             cur_y = y + dy * distance
             while (0 <= cur_x < width and 0 <= cur_y < height):
-                print(cur_x, cur_y)
                 board.set_cell((cur_x, cur_y), self._board.get_cell((cur_x, cur_y)))
                 if dy == 0:
-                    board.set_cell((cur_x, cur_y + dy), self._board.get_cell((cur_x, cur_y + dy)))
-                    board.set_cell((cur_x, cur_y - dy), self._board.get_cell((cur_x, cur_y - dy)))
+                    board.set_cell((cur_x, cur_y + 1), self._board.get_cell((cur_x, cur_y + 1)))
+                    board.set_cell((cur_x, cur_y - 1), self._board.get_cell((cur_x, cur_y - 1)))
                 if dx == 0:
-                    board.set_cell((cur_x + dx, cur_y), self._board.get_cell((cur_x + dx, cur_y)))
-                    board.set_cell((cur_x - dx, cur_y), self._board.get_cell((cur_x - dx, cur_y)))
+                    board.set_cell((cur_x + 1, cur_y), self._board.get_cell((cur_x + 1, cur_y)))
+                    board.set_cell((cur_x - 1, cur_y), self._board.get_cell((cur_x - 1, cur_y)))
 
                 if self._board.get_cell((cur_x, cur_y)) == Cell['WALL']:
                     break
@@ -162,6 +160,11 @@ class BoardManager():
                 distance += 1
                 cur_x = x + dx * distance
                 cur_y = y + dy * distance
+
+        for x in range(width):
+            for y in range(height):
+                if board.get_cell((x, y)) == Cell['PAC_GUM']:
+                    out._pac_gum_sightings[(x, y)] = 0
 
         # vision of other agents
         for a in other_team_agents:
